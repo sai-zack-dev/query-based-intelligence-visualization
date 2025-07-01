@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@layer components {
+  .input {
+    @apply w-full px-3 py-2 border rounded text-sm;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-600 transition;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 border border-blue-400 text-blue-400 rounded-md hover:bg-blue-50 transition;
+  }
+
+  .bg-light {
+    @apply bg-gradient-to-b from-sky-100 via-white to-sky-100;
+  }
+}
