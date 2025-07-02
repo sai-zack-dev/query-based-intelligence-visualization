@@ -1,21 +1,62 @@
-import React, { useState } from "react";
+import React from "react";
 import { FiUploadCloud } from "react-icons/fi";
 import { FaSave } from "react-icons/fa";
-
+import { ConnectionData } from "../../types/connection";
+import { useConnectionForm } from "../../hooks/useConnectionForm";
+import { AlertBox } from "../../components/common/AlertBox";
 interface Props {
-  sidebarActive: boolean;
+  selectedConnection: ConnectionData | null;
 }
 
-export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
-  const [connectionType, setConnectionType] = useState("");
-  const [fileName, setFileName] = useState<string | null>(null);
+export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
+  const {
+    connectionType,
+    setConnectionType,
+    fileName,
+    setFileName,
+    formData,
+    setFormData,
+    status,
+    handleTestConnection,
+  } = useConnectionForm(selectedConnection);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
+    if (file) setFileName(file.name);
+  };
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const fileExtensionLabel = () => {
+    switch (connectionType) {
+      case "excel":
+        return ".xlsx, .xls";
+      case "csv":
+        return ".csv";
+      case "sqlite":
+        return ".sqlite, .db";
+      default:
+        return "";
     }
   };
+
+  const fileAcceptType = () => {
+    switch (connectionType) {
+      case "excel":
+        return ".xlsx";
+      case "csv":
+        return ".csv";
+      case "sqlite":
+        return ".db";
+      default:
+        return "*";
+    }
+  };
+
+  const capitalize = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
 
   const renderConnectionInputs = () => {
     if (connectionType === "mysql") {
@@ -24,11 +65,19 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
           <div className="flex gap-3">
             <div className="w-full">
               <label className="input-label">Host</label>
-              <input className="input" placeholder="e.g. localhost" />
+              <input
+                className="input"
+                value={formData.host}
+                onChange={(e) => handleChange("host", e.target.value)}
+              />
             </div>
             <div className="w-full">
               <label className="input-label">Port</label>
-              <input className="input" placeholder="e.g. 3306" />
+              <input
+                className="input"
+                value={formData.port}
+                onChange={(e) => handleChange("port", e.target.value)}
+              />
             </div>
           </div>
           <div className="flex gap-3">
@@ -38,7 +87,11 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
             </div>
             <div className="w-full">
               <label className="input-label">Password</label>
-              <input type="password" placeholder="Enter password" className="input" />
+              <input
+                className="input"
+                type="password"
+                placeholder="Enter password"
+              />
             </div>
           </div>
         </>
@@ -58,7 +111,10 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
               </a>
             )}
           </div>
-          <label className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center text-gray-500 cursor-pointer hover:bg-gray-50 transition" htmlFor="file-upload">
+          <label
+            className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center text-gray-500 cursor-pointer hover:bg-gray-50 transition"
+            htmlFor="file-upload"
+          >
             <FiUploadCloud className="text-3xl mb-2" />
             <label className="cursor-pointer">
               {fileName ? (
@@ -82,42 +138,14 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
     return null;
   };
 
-  const fileExtensionLabel = () => {
-    switch (connectionType) {
-      case "excel":
-        return ".xlsx, xls";
-      case "csv":
-        return ".csv";
-      case "sqlite":
-        return ".sqlite, .sqlite3, .db, .db3, .s3db, .sl3";
-      default:
-        return "";
-    }
-  };
-
-  const fileAcceptType = () => {
-    switch (connectionType) {
-      case "excel":
-        return ".xlsx";
-      case "csv":
-        return ".csv";
-      case "sqlite":
-        return ".db";
-      default:
-        return "*";
-    }
-  };
-
-  const capitalize = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-
   const renderSubmitButton = () => {
     const isFileImport = ["excel", "csv", "sqlite"].includes(connectionType);
     return (
-      <div className="flex justify-end mt-4 gap-2">
+      <div className="flex justify-end mt-3 gap-2">
         <button
           type="button"
           className="btn-outline w-1/2 md:w-auto text-xs"
+          onClick={handleTestConnection}
         >
           {isFileImport ? "Test Template" : "Test Connection"}
         </button>
@@ -139,7 +167,6 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
       </div>
 
       <form className="flex flex-col space-y-3">
-        {/* Type */}
         <div>
           <label className="input-label">Connection Type</label>
           <select
@@ -155,18 +182,34 @@ export const ConnectionForm: React.FC<Props> = ({ sidebarActive }) => {
           </select>
         </div>
 
-        {/* Common Name */}
         {connectionType && (
           <div>
             <label className="input-label">Connection Name</label>
-            <input className="input" placeholder="Enter connection name" />
+            <input
+              className="input"
+              placeholder="Enter your name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+            />
           </div>
         )}
 
-        {/* Conditional Inputs */}
         {renderConnectionInputs()}
 
-        {/* Submit Buttons */}
+        {status === "success" && (
+          <AlertBox
+            type="success"
+            message="Connected to the database."
+          />
+        )}
+
+        {status === "error" && (
+          <AlertBox
+            type="error"
+            message="Something went wrong."
+          />
+        )}
+
         {connectionType && renderSubmitButton()}
       </form>
     </div>

@@ -1,55 +1,63 @@
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
+import { ConnectionData } from "@/types/connection";
 
-/**
- * Hook to manage connection form state and actions.
- */
-export const useConnectionForm = () => {
-  const [type, setType] = useState("MySQL");
-  const [name, setName] = useState("Sales DB");
-  const [host, setHost] = useState("localhost");
-  const [port, setPort] = useState("80");
-  const [username, setUsername] = useState("root");
-  const [password, setPassword] = useState("password");
+export const useConnectionForm = (
+  selectedConnection: ConnectionData | null
+) => {
+  const [connectionType, setConnectionType] = useState<string>("");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    host: "",
+    port: "",
+    username: "",
+    password: "",
+  });
+  
   const [status, setStatus] = useState<"success" | "error" | null>(null);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case "type":
-        setType(value);
-        break;
-      case "name":
-        setName(value);
-        break;
-      case "host":
-        setHost(value);
-        break;
-      case "port":
-        setPort(value);
-        break;
-      case "username":
-        setUsername(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+  useEffect(() => {
+    if (selectedConnection) {
+      setConnectionType(selectedConnection.type.toLowerCase());
+      setFileName(selectedConnection.file ?? null);
+      setFormData({
+        name: selectedConnection.name ?? "",
+        host: selectedConnection.host ?? "",
+        port: selectedConnection.port?.toString() ?? "",
+        username: "",
+        password: "",
+      });
+    } else {
+      setConnectionType("");
+      setFileName(null);
+      setFormData({
+        name: "",
+        host: "",
+        port: "",
+        username: "",
+        password: "",
+      });
     }
-  };
+    setStatus(null);
+  }, [selectedConnection]);
 
   const handleTestConnection = () => {
-    // Simulate async test (replace with actual IPC call)
-    setTimeout(() => setStatus("success"), 500);
+    setStatus(null);
+    setTimeout(() => {
+      // Simulate success or failure
+      const random = Math.random();
+      setStatus(random < 0.5 ? "success" : "error");
+    }, 500);
   };
 
   return {
-    type,
-    name,
-    host,
-    port,
-    username,
-    password,
+    connectionType,
+    setConnectionType,
+    fileName,
+    setFileName,
+    formData,
+    setFormData,
     status,
-    handleChange,
-    handleTestConnection,
+    handleTestConnection
   };
 };
