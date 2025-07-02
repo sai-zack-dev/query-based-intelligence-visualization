@@ -54,7 +54,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   toggleSidebar,
 }) => {
   const sidebarClasses = `
-    p-4 border-r md:block hidden border-gray-200 bg-white rounded-e-xl shadow 
+    p-4 border-r sm:block hidden border-gray-200 bg-white rounded-e-xl shadow 
     transition-all duration-300
     ${
       sidebarActive
@@ -69,12 +69,12 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   `.trim();
 
   const addButtonClasses = `
-    w-full mt-4 text-sm cursor-pointer btn-outline
+    w-full mt-4 text-xs cursor-pointer btn-outline 
     ${sidebarActive ? "block" : "hidden"}
   `.trim();
 
   const toggleButtonClasses = `
-    absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden md:block
+    absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:block
     left-0 h-10 w-10 flex items-center justify-center
     ${
       sidebarActive
@@ -94,7 +94,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
       <div className={sidebarClasses}>
         {/* Header */}
         <div className={headerClasses}>
-          <h2 className="text-sm font-semibold text-gray-800">
+          <h2 className="font-semibold text-gray-800">
             Saved Connections
           </h2>
         </div>
