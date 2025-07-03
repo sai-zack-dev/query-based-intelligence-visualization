@@ -1,15 +1,15 @@
-import { useState } from 'react'
+// import { useState } from 'react'
 
-function App() {
-  const [count, setCount] = useState(0)
+// const App = () => {
+//   return (
+//     <div className="p-8">
+//       <h1 className="text-2xl font-bold">Welcome to QBIV</h1>
+//       <a href="/connection" className="btn-primary inline-block mt-4">
+//         Go to Data Connection →
+//       </a>
+//     </div>
+//   );
+// };
 
-  return (
-    <>
-        <button className='bg-blue-500 text-white p-2 rounded-md m-10' onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-    </>
-  )
-}
+// export default App;
 
-export default App

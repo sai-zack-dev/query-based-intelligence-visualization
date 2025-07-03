@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@layer components {
+  .input {
+    @apply w-full px-3 py-2 border rounded text-sm;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition;
+  }
+
+  .btn-outline {
+    @apply px-3 py-2 border border-blue-400 text-blue-400 rounded-md hover:bg-blue-50 transition;
+  }
+
+  .bg-light {
+    @apply bg-gradient-to-b from-sky-100 via-white to-sky-100;
+  }
+
+  .input-label {
+    @apply block text-sm text-gray-500 mb-1;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border rounded-md border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-300;
+  }
+
+  .normal-box {
+    @apply p-3 bg-gray-50 rounded-md hover:bg-gray-100 border border-gray-200;
+  }
+
+  .active-box {
+    @apply p-3 bg-blue-50 rounded-md hover:bg-blue-100 border border-blue-300;
+  }
+}
