@@ -1,8 +1,5 @@
 import { useState } from "react";
 
-/**
- * Hook to toggle sidebar open/close state.
- */
 export const useSidebarToggle = () => {
   const [sidebarActive, setSidebarActive] = useState(true);
 

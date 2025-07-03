@@ -12,9 +12,6 @@ interface SavedConnectionsPanelProps {
   onAddNewConnection: () => void;
 }
 
-const SIDEBAR_WIDTH = 300;
-const TOGGLE_BUTTON_OFFSET = 250;
-
 export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   sidebarActive,
   toggleSidebar,
@@ -26,13 +23,13 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   const sidebarClasses = `
     p-4 border-r sm:block hidden border-gray-200 bg-white rounded-e-xl shadow 
     transition-all duration-300
-    ${sidebarActive ? `translate-x-0 min-w-[${SIDEBAR_WIDTH}px]` : "-translate-x-full w-0 overflow-hidden"}
+    ${sidebarActive ? `translate-x-0 min-w-[300px]` : "-translate-x-full w-0 overflow-hidden"}
   `.trim();
 
   const toggleButtonClasses = `
     absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:block
     left-0 h-10 w-10 flex items-center justify-center
-    ${sidebarActive ? `translate-x-[${TOGGLE_BUTTON_OFFSET}px]` : "shadow translate-x-0"}
+    ${sidebarActive ? `translate-x-[250px]` : "shadow translate-x-0"}
   `.trim();
 
   return (

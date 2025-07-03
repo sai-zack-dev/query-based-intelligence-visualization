@@ -13,8 +13,8 @@
     @apply px-3 py-2 border border-blue-400 text-blue-400 rounded-md hover:bg-blue-50 transition;
   }
 
-  .bg-light {
-    @apply bg-gradient-to-b from-sky-100 via-white to-sky-100;
+  .bg {
+    @apply min-h-screen w-full bg-gradient-to-br from-blue-100 via-white to-blue-100;
   }
 
   .input-label {

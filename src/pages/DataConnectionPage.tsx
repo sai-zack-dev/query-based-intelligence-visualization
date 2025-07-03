@@ -55,9 +55,9 @@ const DataConnectionPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-sky-100 via-white to-sky-100">
+    <div className="bg">
       <Navbar />
-      <div className="pt-20 flex justify-center items-start">
+      <div className="pt-25 flex justify-center items-start">
         <SavedConnectionsPanel
           sidebarActive={sidebarActive}
           toggleSidebar={toggleSidebar}
