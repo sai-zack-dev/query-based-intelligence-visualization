@@ -1,15 +1,18 @@
-// import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import DataConnectionPage from "./pages/DataConnectionPage";
+import QueryBuilderPage from "./pages/QueryBuilderPage";
+import ChartGenerationPage from "./pages/ChartGenerationPage";
+import DashboardPage from "./pages/DashboardsPage";
 
-// const App = () => {
-//   return (
-//     <div className="p-8">
-//       <h1 className="text-2xl font-bold">Welcome to QBIV</h1>
-//       <a href="/connection" className="btn-primary inline-block mt-4">
-//         Go to Data Connection →
-//       </a>
-//     </div>
-//   );
-// };
+const App = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<DataConnectionPage />} />
+      <Route path="/query" element={<QueryBuilderPage />} />
+      <Route path="/chart" element={<ChartGenerationPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+    </Routes>
+  </BrowserRouter>
+);
 
-// export default App;
-
+export default App;
