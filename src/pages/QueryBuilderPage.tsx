@@ -1,12 +1,13 @@
-import { Navbar } from "../components/common/Navbar";
+import { QueryTools } from "../components/QueryBuilder/QueryTools";
+import { LeftPanel } from "../components/QueryBuilder/LeftPanel";
+import { SidebarData } from "../types/sidebar";
 
-const QueryBuilderPage = () => {
+const QueryBuilderPage: React.FC<SidebarData> = ({ sidebarActive, toggleSidebar }) => {
+
   return (
-    <div className="bg">
-      <Navbar />
-      <div className="pt-24 px-6 text-center text-xl font-semibold text-gray-600">
-        🚧 Query Builder UI Coming Soon...
-      </div>
+    <div className="pt-25 flex justify-center items-start">
+      <LeftPanel sidebarActive={sidebarActive} toggleSidebar={toggleSidebar} />
+      <QueryTools />
     </div>
   );
 };

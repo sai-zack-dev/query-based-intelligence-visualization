@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Navbar } from "../components/common/Navbar";
 import { SavedConnectionsPanel } from "../components/DataConnection/SavedConnectionsPanel";
 import { ConnectionForm } from "../components/DataConnection/ConnectionForm";
-import { useSidebarToggle } from "../hooks/useSidebarToggle";
 import { ConnectionData } from "../types/connection";
+import { SidebarData } from "../types/sidebar";
 
 const MOCK_CONNECTIONS: ConnectionData[] = [
   {
@@ -44,19 +43,16 @@ const MOCK_CONNECTIONS: ConnectionData[] = [
   },
 ];
 
-const DataConnectionPage = () => {
-  const { sidebarActive, toggleSidebar } = useSidebarToggle();
+const DataConnectionPage: React.FC<SidebarData> = ({ sidebarActive, toggleSidebar }) => {
   const [activeConnectionId, setActiveConnectionId] = useState<string | number | null>(null);
 
   const selectedConnection = MOCK_CONNECTIONS.find(c => c.id === activeConnectionId) ?? null;
 
   const handleAddNewConnection = () => {
-    setActiveConnectionId(null); // clear form by deselecting
+    setActiveConnectionId(null);
   };
 
   return (
-    <div className="bg">
-      <Navbar />
       <div className="pt-25 flex justify-center items-start">
         <SavedConnectionsPanel
           sidebarActive={sidebarActive}
@@ -69,7 +65,6 @@ const DataConnectionPage = () => {
         <ConnectionForm
           selectedConnection={selectedConnection}
         />
-      </div>
     </div>
   );
 };

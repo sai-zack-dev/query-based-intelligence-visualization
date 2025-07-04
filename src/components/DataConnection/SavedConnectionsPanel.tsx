@@ -2,10 +2,9 @@ import React from "react";
 import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
 import { SavedConnectionCard } from "./SavedConnectionCard";
 import { ConnectionData } from "@/types/connection";
+import { SidebarData } from "@/types/sidebar";
 
-interface SavedConnectionsPanelProps {
-  sidebarActive: boolean;
-  toggleSidebar: () => void;
+interface SavedConnectionsPanelProps extends SidebarData {
   connections: ConnectionData[];
   activeConnectionId: string | number | null;
   setActiveConnectionId: (id: string | number) => void;
