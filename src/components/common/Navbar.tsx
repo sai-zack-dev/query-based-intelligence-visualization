@@ -1,4 +1,4 @@
-import { BiSolidDashboard } from "react-icons/bi";
+import { RiDashboardLine } from "react-icons/ri";
 import { StepProgress } from "./StepProgress";
 import { Link, useLocation } from "react-router-dom";
 
@@ -31,7 +31,7 @@ export const Navbar = () => {
           to={isDashboard ? "/" : "/dashboard"}
           className="flex p-3 bg-white shadow-md rounded-s-xl"
         >
-          <BiSolidDashboard className="w-6 h-6 text-blue-500" />
+          <RiDashboardLine className="w-6 h-6 text-blue-500" />
         </Link>
       </div>
     </div>

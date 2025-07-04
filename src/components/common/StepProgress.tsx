@@ -1,13 +1,13 @@
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
 import { FaLink, FaDatabase } from "react-icons/fa";
-import { FaChartColumn } from "react-icons/fa6";
+import { IoBarChart } from "react-icons/io5";
 import clsx from "clsx";
 
 const steps = [
   { path: "/", label: "Data Connection", icon: FaLink },
   { path: "/query", label: "Query Builder", icon: FaDatabase },
-  { path: "/chart", label: "Chart Generation", icon: FaChartColumn },
+  { path: "/chart", label: "Chart Generation", icon: IoBarChart },
 ];
 
 export const StepProgress: React.FC = () => {
