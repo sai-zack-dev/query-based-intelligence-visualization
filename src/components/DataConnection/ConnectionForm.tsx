@@ -1,9 +1,12 @@
 import React from "react";
-import { FiUploadCloud } from "react-icons/fi";
-import { FaSave } from "react-icons/fa";
-import { ConnectionData } from "../../types/connection";
+import { ConnectionData, ConnectionType } from "../../types/connection";
 import { useConnectionForm } from "../../hooks/useConnectionForm";
 import { AlertBox } from "../../components/common/AlertBox";
+import { ConnectionTypeSelector } from "./main/ConnectionTypeSelector";
+import { ConnectionNameInput } from "./main/ConnectionNameInput";
+import { ConnectionInputs } from "./main/ConnectionInputs";
+import { ConnectionFormButtons } from "./main/ConnectionFormButtons";
+
 interface Props {
   selectedConnection: ConnectionData | null;
 }
@@ -18,6 +21,7 @@ export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
     setFormData,
     status,
     handleTestConnection,
+    handleSubmit,
   } = useConnectionForm(selectedConnection);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,139 +29,21 @@ export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
     if (file) setFileName(file.name);
   };
 
-  const handleChange = (key: string, value: string) => {
+  const handleFormChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const fileExtensionLabel = () => {
-    switch (connectionType) {
-      case "excel":
-        return ".xlsx, .xls";
-      case "csv":
-        return ".csv";
-      case "sqlite":
-        return ".sqlite, .db";
-      default:
-        return "";
-    }
+  const handleTypeChange = (type: ConnectionType) => {
+    setConnectionType(type);
   };
 
-  const fileAcceptType = () => {
-    switch (connectionType) {
-      case "excel":
-        return ".xlsx";
-      case "csv":
-        return ".csv";
-      case "sqlite":
-        return ".db";
-      default:
-        return "*";
-    }
+  const handleNameChange = (name: string) => {
+    handleFormChange("name", name);
   };
 
-  const capitalize = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-
-  const renderConnectionInputs = () => {
-    if (connectionType === "mysql") {
-      return (
-        <>
-          <div className="flex gap-3">
-            <div className="w-full">
-              <label className="input-label">Host</label>
-              <input
-                className="input"
-                value={formData.host}
-                onChange={(e) => handleChange("host", e.target.value)}
-              />
-            </div>
-            <div className="w-full">
-              <label className="input-label">Port</label>
-              <input
-                className="input"
-                value={formData.port}
-                onChange={(e) => handleChange("port", e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="w-full">
-              <label className="input-label">Username</label>
-              <input className="input" placeholder="e.g. root" />
-            </div>
-            <div className="w-full">
-              <label className="input-label">Password</label>
-              <input
-                className="input"
-                type="password"
-                placeholder="Enter password"
-              />
-            </div>
-          </div>
-        </>
-      );
-    }
-
-    if (["excel", "csv", "sqlite"].includes(connectionType)) {
-      return (
-        <>
-          <div className="flex items-center justify-between">
-            <label className="input-label">
-              Import File ({fileExtensionLabel()})
-            </label>
-            {connectionType !== "sqlite" && (
-              <a href="#" className="text-xs text-blue-600 underline">
-                Download {capitalize(connectionType)} Template
-              </a>
-            )}
-          </div>
-          <label
-            className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center text-gray-500 cursor-pointer hover:bg-gray-50 transition"
-            htmlFor="file-upload"
-          >
-            <FiUploadCloud className="text-3xl mb-2" />
-            <label className="cursor-pointer">
-              {fileName ? (
-                <span className="text-gray-700 font-medium">{fileName}</span>
-              ) : (
-                "Drag and Drop or Browse File"
-              )}
-            </label>
-            <input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              accept={fileAcceptType()}
-              onChange={handleFileChange}
-            />
-          </label>
-        </>
-      );
-    }
-
-    return null;
-  };
-
-  const renderSubmitButton = () => {
-    const isFileImport = ["excel", "csv", "sqlite"].includes(connectionType);
-    return (
-      <div className="flex justify-end mt-3 gap-2">
-        <button
-          type="button"
-          className="btn-outline w-1/2 md:w-auto text-xs"
-          onClick={handleTestConnection}
-        >
-          {isFileImport ? "Test Template" : "Test Connection"}
-        </button>
-        <button
-          type="submit"
-          className="btn-primary w-1/2 md:w-auto text-xs flex justify-center items-center gap-2"
-        >
-          <FaSave />
-          {isFileImport ? "Save and Import" : "Save and Connect"}
-        </button>
-      </div>
-    );
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit?.();
   };
 
   return (
@@ -166,51 +52,42 @@ export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
         <h2 className="font-semibold text-gray-800">Connection</h2>
       </div>
 
-      <form className="flex flex-col space-y-3">
-        <div>
-          <label className="input-label">Connection Type</label>
-          <select
-            className="input"
-            value={connectionType}
-            onChange={(e) => setConnectionType(e.target.value)}
-          >
-            <option value="">Select connection type</option>
-            <option value="mysql">MySQL</option>
-            <option value="excel">Excel</option>
-            <option value="csv">CSV</option>
-            <option value="sqlite">SQLite</option>
-          </select>
-        </div>
+      <form onSubmit={onFormSubmit} className="flex flex-col space-y-3">
+        <ConnectionTypeSelector
+          connectionType={connectionType as ConnectionType}
+          onTypeChange={handleTypeChange}
+        />
 
         {connectionType && (
-          <div>
-            <label className="input-label">Connection Name</label>
-            <input
-              className="input"
-              placeholder="Enter your name"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-            />
-          </div>
+          <ConnectionNameInput
+            name={formData.name}
+            onNameChange={handleNameChange}
+          />
         )}
 
-        {renderConnectionInputs()}
+        <ConnectionInputs
+          connectionType={connectionType as ConnectionType}
+          formData={formData}
+          fileName={fileName ?? ""}
+          onFormChange={handleFormChange}
+          onFileChange={handleFileChange}
+        />
 
         {status === "success" && (
-          <AlertBox
-            type="success"
-            message="Connected to the database."
-          />
+          <AlertBox type="success" message="Connected to the database." />
         )}
 
         {status === "error" && (
-          <AlertBox
-            type="error"
-            message="Something went wrong."
-          />
+          <AlertBox type="error" message="Something went wrong." />
         )}
 
-        {connectionType && renderSubmitButton()}
+        {connectionType && (
+          <ConnectionFormButtons
+            connectionType={connectionType as ConnectionType}
+            onTestConnection={handleTestConnection}
+            onSubmit={handleSubmit}
+          />
+        )}
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
-import { SavedConnectionCard } from "./SavedConnectionCard";
+import { SavedConnectionCard } from "./sidebar/SavedConnectionCard";
 import { ConnectionData } from "@/types/connection";
 import { SidebarData } from "@/types/sidebar";
 
@@ -20,14 +20,12 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   onAddNewConnection
 }) => {
   const sidebarClasses = `
-    p-4 border-r sm:block hidden border-gray-200 bg-white rounded-e-xl shadow 
-    transition-all duration-300
+    sidebar
     ${sidebarActive ? `translate-x-0 min-w-[300px]` : "-translate-x-full w-0 overflow-hidden"}
   `.trim();
 
   const toggleButtonClasses = `
-    absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:block
-    left-0 h-10 w-10 flex items-center justify-center
+    sidebar-toggle
     ${sidebarActive ? `translate-x-[250px]` : "shadow translate-x-0"}
   `.trim();
 

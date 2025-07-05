@@ -7,3 +7,14 @@ export interface ConnectionData {
   file: string | null;
   date: string;
 }
+
+export interface FormData {
+  name: string;
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+}
+
+export type ConnectionType = "mysql" | "excel" | "csv" | "sqlite" | "";
+export type ConnectionStatus = "idle" | "loading" | "success" | "error";
