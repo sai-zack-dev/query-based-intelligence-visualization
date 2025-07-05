@@ -1,4 +1,5 @@
 import React from "react";
+import EntitySection from "./EntitySection";
 
 interface DatabaseOption {
   value: string;
@@ -54,6 +55,7 @@ const DataExplorer: React.FC<DataExplorerProps> = ({
             </select>
           </div>
         </form>
+        <EntitySection />
       </div>
     </>
   );

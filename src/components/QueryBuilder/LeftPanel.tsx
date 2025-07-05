@@ -5,7 +5,9 @@ import { FiDatabase, FiBookmark } from "react-icons/fi";
 import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
 import SidebarTab from "../common/SidebarTab";
-import DataExplorer from "./DataExplorer";
+import DataExplorer from "./sidebar/DataExplorer";
+import SavedQuery from "./sidebar/SavedQuery";
+import DataSource from "./sidebar/DataSource";
 
 const SIDEBAR_TABS = [
   {
@@ -59,26 +61,8 @@ export const LeftPanel: React.FC<SidebarData> = ({
           <>
             {/* Sidebar Content */}
             {sidebarTab === "data_exp" && <DataExplorer />}
-            {sidebarTab === "saved_query" && (
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">
-                  Saved Queries
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Manage your saved queries.
-                </p>
-              </div>
-            )}
-            {sidebarTab === "data_source" && (
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">
-                  Data Sources
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Manage your data sources.
-                </p>
-              </div>
-            )}
+            {sidebarTab === "saved_query" && <SavedQuery />}
+            {sidebarTab === "data_source" && <DataSource />}
           </>
         )}
       </div>
