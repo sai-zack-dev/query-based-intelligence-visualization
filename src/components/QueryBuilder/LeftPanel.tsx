@@ -8,6 +8,7 @@ import SidebarTab from "../common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
+import { ConnectionData } from '@/types/connection';
 
 const SIDEBAR_TABS = [
   {
@@ -29,6 +30,15 @@ const SIDEBAR_TABS = [
     label: "Data Source",
   },
 ];
+  const currentConnection: ConnectionData = {
+    id: "mock-1",
+    name: "MySQL Database",
+    type: "MySQL",
+    host: "localhost",
+    port: 3306,
+    file: null,
+    date: "06/07/2025"
+  };
 
 export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
@@ -62,7 +72,12 @@ export const LeftPanel: React.FC<SidebarData> = ({
             {/* Sidebar Content */}
             {sidebarTab === "data_exp" && <DataExplorer />}
             {sidebarTab === "saved_query" && <SavedQuery />}
-            {sidebarTab === "data_source" && <DataSource />}
+            {sidebarTab === "data_source" && (
+              <DataSource
+                connection={currentConnection}
+                onChangeDataSource={() => {}}
+              />
+            )}
           </>
         )}
       </div>

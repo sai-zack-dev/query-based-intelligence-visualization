@@ -17,11 +17,15 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
   connections,
   activeConnectionId,
   setActiveConnectionId,
-  onAddNewConnection
+  onAddNewConnection,
 }) => {
   const sidebarClasses = `
     sidebar
-    ${sidebarActive ? `translate-x-0 min-w-[300px]` : "-translate-x-full w-0 overflow-hidden"}
+    ${
+      sidebarActive
+        ? `translate-x-0 min-w-[300px]`
+        : "-translate-x-full w-0 overflow-hidden"
+    }
   `.trim();
 
   const toggleButtonClasses = `
@@ -45,12 +49,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
           {connections.map((connection) => (
             <SavedConnectionCard
               key={connection.id}
-              name={connection.name ?? ""}
-              type={connection.type}
-              host={connection.host ?? ""}
-              port={connection.port ?? null}
-              file={connection.file ?? ""}
-              date={connection.date}
+              connection={connection}
               active={connection.id === activeConnectionId}
               onClick={() => setActiveConnectionId(connection.id)}
             />
@@ -59,7 +58,10 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
 
         {/* Add Button */}
         {sidebarActive && (
-          <button className="w-full mt-4 text-xs cursor-pointer btn-outline" onClick={onAddNewConnection} >
+          <button
+            className="w-full mt-4 text-xs cursor-pointer btn-outline"
+            onClick={onAddNewConnection}
+          >
             + Add New Connection
           </button>
         )}
@@ -72,7 +74,11 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
         type="button"
         aria-label={sidebarActive ? "Close sidebar" : "Open sidebar"}
       >
-        {sidebarActive ? <RiSidebarFoldLine size={16} /> : <RiSidebarUnfoldLine size={16} />}
+        {sidebarActive ? (
+          <RiSidebarFoldLine size={16} />
+        ) : (
+          <RiSidebarUnfoldLine size={16} />
+        )}
       </button>
     </>
   );
