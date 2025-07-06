@@ -19,7 +19,7 @@ export const useConnectionForm = (
   useEffect(() => {
     if (selectedConnection) {
       setConnectionType(selectedConnection.type.toLowerCase());
-      setFileName(selectedConnection.file ?? null);
+      setFileName(null);
       setFormData({
         name: selectedConnection.name ?? "",
         host: selectedConnection.host ?? "",
@@ -50,6 +50,13 @@ export const useConnectionForm = (
     }, 500);
   };
 
+  const handleSubmit = () => {
+    // Here you would typically send the formData to your backend
+    console.log("Submitting connection data:", formData);
+    // Reset status after submission
+    setStatus(null);
+  };
+
   return {
     connectionType,
     setConnectionType,
@@ -58,6 +65,7 @@ export const useConnectionForm = (
     formData,
     setFormData,
     status,
-    handleTestConnection
+    handleTestConnection,
+    handleSubmit
   };
 };

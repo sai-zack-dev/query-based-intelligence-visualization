@@ -1,26 +1,19 @@
 import React from "react";
+import { ConnectionData } from '@/types/connection';
 
 interface Props {
-  name: string;
-  type: "MySQL" | "SQLite" | "Excel" | "CSV";
-  host: string | null;
-  port: number | null;
-  file: string | null;
-  date: string;
-  active: boolean,
+  connection: ConnectionData;
+  active: boolean;
   onClick?: () => void;
 }
 
 export const SavedConnectionCard: React.FC<Props> = ({
-  name,
-  type,
-  host,
-  port,
-  file,
-  date,
+  connection,
   active = false,
   onClick = () => {},
 }) => {
+  const { name, type, host, port, file, date } = connection;
+
   const typeColor = {
     MySQL: "bg-teal-100 text-teal-600",
     SQLite: "bg-blue-100 text-blue-600",
