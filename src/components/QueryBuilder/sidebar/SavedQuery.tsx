@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaChevronDown, FaChevronRight, FaPlay, FaChartBar, FaTrashAlt } from 'react-icons/fa';
+import { FaPlay, FaChartBar, FaTrashAlt } from 'react-icons/fa';
 
 
 interface SavedQuery {
@@ -10,7 +10,7 @@ interface SavedQuery {
   expanded?: boolean;
 }
 
-const SavedQueriesAccordion: React.FC = () => {
+const SavedQuery: React.FC = () => {
   const [queries, setQueries] = useState<SavedQuery[]>([
     {
       id: '1',
@@ -147,8 +147,8 @@ ORDER BY total_sales DESC;`,
             {query.expanded && (
               <div className="p-4 bg-blue-50">
                 {/* SQL Code Block */}
-                <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                  <pre className="text-xs text-white font-mono overflow-x-auto">
+                <div className="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                  <pre className="text-xs text-white font-mono">
                     <code 
                       dangerouslySetInnerHTML={{ 
                         __html: formatSQL(query.query) 
@@ -158,29 +158,30 @@ ORDER BY total_sales DESC;`,
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-col lg:flex-row items-center gap-2">
                   <button
                     onClick={() => handleRunQuery(query.id)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg lg:justify-center hover:bg-blue-700 transition-colors w-full lg:flex-2/5 flex-grow"
                   >
-                    <FaPlay className="w-4 h-4" />
-                    <span>Run Query</span>
+                    <FaPlay className="w-3 h-3" />
+                    <span className='text-xs'>Run Query</span>
                   </button>
                   
                   <button
                     onClick={() => handleGenerateChart(query.id)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 lg:justify-center bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors w-full lg:flex-2/5 h-full"
                   >
                     <FaChartBar className="w-4 h-4" />
-                    <span>Generate Chart</span>
+                    <span className='text-xs'>Build Chart</span>
                   </button>
                   
                   <button
                     onClick={() => handleDeleteQuery(query.id)}
-                    className="flex items-center justify-center w-10 h-10 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                    className="flex items-center lg:justify-center gap-2 h-full px-4 py-2 lg:py-4 xl:py-2 bg-red-100 text-red-600 border border-red-300 rounded-lg hover:bg-red-200 transition-colors w-full lg:flex-1/5"
                     title="Delete Query"
                   >
                     <FaTrashAlt className="w-4 h-4" />
+                    <span className='text-xs lg:hidden'>Delete</span>
                   </button>
                 </div>
               </div>
@@ -192,4 +193,4 @@ ORDER BY total_sales DESC;`,
   );
 };
 
-export default SavedQueriesAccordion;
+export default SavedQuery;
