@@ -34,12 +34,10 @@
   }
 
   .sidebar {
-    @apply p-4 min-h-[200px] border-r sm:block hidden border-gray-200 bg-white rounded-e-xl shadow 
-    transition-all duration-300;
+    @apply p-4 min-h-[200px] border-r sm:block hidden border-gray-200 bg-white rounded-e-xl shadow transition-all duration-300;
   }
 
   .sidebar-toggle {
-    @apply absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 flex
-    left-0 h-10 w-10  items-center justify-center
+    @apply absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 flex left-0 h-10 w-10 items-center justify-center;
   }
 }

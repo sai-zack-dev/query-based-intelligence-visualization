@@ -5,7 +5,7 @@ export const QueryTools = () => {
   const [activeTab, setActiveTab] = useState<"ai" | "manual">("manual");
 
   return (
-    <div className="p-6 pt-3 mx-0 sm:mx-6 rounded-xl bg-white shadow transition-all duration-300 w-full">
+    <div className="p-6 pt-3 mr-6 rounded-xl bg-white shadow flex-grow transition-all duration-300">
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
         <h2 className="font-semibold text-gray-800">Query Tools</h2>
         <TabSwitcher
