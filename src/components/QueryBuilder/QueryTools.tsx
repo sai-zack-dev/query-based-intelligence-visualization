@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import TabSwitcher from "../common/TabSwithcher";
+import { AiPanel } from "./main/AiPanel";
 
 export const QueryTools = () => {
   const [activeTab, setActiveTab] = useState<"ai" | "manual">("manual");
 
   return (
-    <div className="p-6 pt-3 mr-6 rounded-xl bg-white shadow flex-grow transition-all duration-300">
-      <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
+    <div className="mr-6 p-4 pt-3 rounded-xl bg-white shadow flex-grow transition-all duration-300">
+      {/* Header with tab switcher */}
+      <div className="flex items-center justify-between border-b border-gray-200 pb-3 ">
         <h2 className="font-semibold text-gray-800">Query Tools</h2>
         <TabSwitcher
           tabs={[
@@ -20,10 +22,7 @@ export const QueryTools = () => {
 
       {/* Render based on selected tab */}
       {activeTab === "ai" && (
-        <div className="text-sm">
-          {/* Replace with real AI Chat UI */}
-          🤖 AI Assistant Chat UI Goes Here...
-        </div>
+        <AiPanel />
       )}
 
       {activeTab === "manual" && (

@@ -53,7 +53,7 @@ const DataConnectionPage: React.FC<SidebarData> = ({ sidebarActive, toggleSideba
   };
 
   return (
-      <div className="pt-25 flex gap-6">
+      <>
         <SavedConnectionsPanel
           sidebarActive={sidebarActive}
           toggleSidebar={toggleSidebar}
@@ -65,7 +65,7 @@ const DataConnectionPage: React.FC<SidebarData> = ({ sidebarActive, toggleSideba
         <ConnectionForm
           selectedConnection={selectedConnection}
         />
-    </div>
+    </>
   );
 };
 

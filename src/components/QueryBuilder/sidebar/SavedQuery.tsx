@@ -88,7 +88,7 @@ ORDER BY total_sales DESC;`,
         {queries.map((query) => (
           <div
             key={query.id}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+            className="bg-white rounded-lg border border-gray-200 overflow-hidden"
           >
             {/* Header */}
             <div

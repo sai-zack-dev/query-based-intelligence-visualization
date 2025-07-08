@@ -2,13 +2,15 @@ import { QueryTools } from "../components/QueryBuilder/QueryTools";
 import { LeftPanel } from "../components/QueryBuilder/LeftPanel";
 import { SidebarData } from "../types/sidebar";
 
-const QueryBuilderPage: React.FC<SidebarData> = ({ sidebarActive, toggleSidebar }) => {
-
+const QueryBuilderPage: React.FC<SidebarData> = ({
+  sidebarActive,
+  toggleSidebar,
+}) => {
   return (
-    <div className="pt-25 flex gap-6">
+    <>
       <LeftPanel sidebarActive={sidebarActive} toggleSidebar={toggleSidebar} />
       <QueryTools />
-    </div>
+    </>
   );
 };
 
