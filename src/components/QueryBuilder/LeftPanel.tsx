@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
-import { SidebarData } from "../../types/sidebar";
+import { SidebarData } from "@/types/sidebar";
 import { FiDatabase, FiBookmark } from "react-icons/fi";
 import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
-import SidebarTab from "../common/SidebarTab";
+import SidebarTab from "@/components/common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
-import { ConnectionData } from '@/types/connection';
+import { CURRENT_CONNECTION, DATABASES } from "@/mock/MockData";
 
-const SIDEBAR_TABS = [
+const sidebarTabs = [
   {
     id: "data_exp",
     icon: FiDatabase,
@@ -30,15 +30,6 @@ const SIDEBAR_TABS = [
     label: "Data Source",
   },
 ];
-  const currentConnection: ConnectionData = {
-    id: "mock-1",
-    name: "MySQL Database",
-    type: "MySQL",
-    host: "localhost",
-    port: 3306,
-    file: null,
-    date: "06/07/2025"
-  };
 
 export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
@@ -55,7 +46,11 @@ export const LeftPanel: React.FC<SidebarData> = ({
 
   const toggleButtonClasses = `
     sidebar-toggle
-    ${sidebarActive ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]` : "shadow translate-x-0"}
+    ${
+      sidebarActive
+        ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]`
+        : "shadow translate-x-0"
+    }
   `.trim();
 
   const [sidebarTab, setSidebarTab] = useState<
@@ -70,13 +65,12 @@ export const LeftPanel: React.FC<SidebarData> = ({
         {sidebarActive && (
           <>
             {/* Sidebar Content */}
-            {sidebarTab === "data_exp" && <DataExplorer />}
+            {sidebarTab === "data_exp" && (
+              <DataExplorer databases={DATABASES} />
+            )}
             {sidebarTab === "saved_query" && <SavedQuery />}
             {sidebarTab === "data_source" && (
-              <DataSource
-                connection={currentConnection}
-                onChangeDataSource={() => {}}
-              />
+              <DataSource connection={CURRENT_CONNECTION} />
             )}
           </>
         )}
@@ -90,7 +84,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
         role="tablist"
         aria-label="Sidebar navigation"
       >
-        {SIDEBAR_TABS.map((tab) => (
+        {sidebarTabs.map((tab) => (
           <SidebarTab
             key={tab.id}
             tab={tab}

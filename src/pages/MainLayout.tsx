@@ -1,7 +1,7 @@
 import React from "react";
-import { useSidebarToggle } from "../hooks/useSidebarToggle";
-import { Navbar } from "../components/common/Navbar";
-import { SidebarData } from "../types/sidebar";
+import { useSidebarToggle } from "@/hooks/useSidebarToggle";
+import { Navbar } from "@/components/common/Navbar";
+import { SidebarData } from "@/types/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactElement;

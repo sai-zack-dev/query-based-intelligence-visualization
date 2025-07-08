@@ -1,6 +1,6 @@
 import React from "react";
 import { FiUploadCloud } from "react-icons/fi";
-import { ConnectionType } from "../../../types/connection";
+import { ConnectionType } from "@/types/connection";
 
 interface Props {
   connectionType: ConnectionType;

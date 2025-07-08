@@ -1,5 +1,5 @@
 import React from "react";
-import { ConnectionType, FormData } from "../../../types/connection";
+import { ConnectionType, FormData } from "@/types/connection";
 import { MySQLConnectionInputs } from "./MySQLConnectionInputs";
 import { FileUploadSection } from "./FileUploadSection";
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { ConnectionType } from "../../../types/connection";
+import { ConnectionType } from "@/types/connection";
 
 interface Props {
   connectionType: ConnectionType;

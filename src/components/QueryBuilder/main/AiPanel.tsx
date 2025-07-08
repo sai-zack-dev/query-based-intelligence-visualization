@@ -1,13 +1,9 @@
-import { FaArrowUp, FaChevronDown, FaUser } from "react-icons/fa6";
+import { FaArrowUp, FaChevronDown } from "react-icons/fa6";
 import { LuBot } from "react-icons/lu";
 import React, { useState, useRef, useEffect } from "react";
+import { Message } from "@/types/message";
+import { AI_MESSAGE } from "@/mock/MockData";
 
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-}
 
 export const AiPanel: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -58,25 +54,9 @@ export const AiPanel: React.FC = () => {
       setTimeout(resolve, 1000 + Math.random() * 2000)
     );
 
-    const responses = [
-      "That's a great question! Let me think about that...",
-      "I understand what you're asking. Here's my perspective on that topic.",
-      "Thanks for sharing that with me. I'd be happy to help you with this.",
-      "That's interesting! I can provide some insights on that matter.",
-      "I see what you mean. Let me break this down for you.",
-    ];
+    
 
-    const randomResponse =
-      responses[Math.floor(Math.random() * responses.length)];
-
-    const aiMessage: Message = {
-      id: Date.now().toString(),
-      text: randomResponse,
-      isUser: false,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, aiMessage]);
+    setMessages((prev) => [...prev, AI_MESSAGE]);
     setIsLoading(false);
   };
 

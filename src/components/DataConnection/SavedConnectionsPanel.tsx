@@ -23,7 +23,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
     sidebar
     ${
       sidebarActive
-        ? `translate-x-0 w-[300px] lg:w-[400px] xl:w-[500px]`
+        ? `translate-x-0 min-w-[300px] w-[300px] lg:w-[400px] xl:w-[500px]`
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();

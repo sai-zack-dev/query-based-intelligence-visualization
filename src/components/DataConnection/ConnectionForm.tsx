@@ -1,7 +1,7 @@
 import React from "react";
-import { ConnectionData, ConnectionType } from "../../types/connection";
-import { useConnectionForm } from "../../hooks/useConnectionForm";
-import { AlertBox } from "../../components/common/AlertBox";
+import { ConnectionData, ConnectionType } from "@/types/connection";
+import { useConnectionForm } from "@/hooks/useConnectionForm";
+import { AlertBox } from "@/components/common/AlertBox";
 import { ConnectionTypeSelector } from "./main/ConnectionTypeSelector";
 import { ConnectionNameInput } from "./main/ConnectionNameInput";
 import { ConnectionInputs } from "./main/ConnectionInputs";

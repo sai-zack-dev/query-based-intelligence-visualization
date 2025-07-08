@@ -1,6 +1,7 @@
 import { useState } from "react";
-import TabSwitcher from "../common/TabSwithcher";
+import TabSwitcher from "@/components/common/TabSwithcher";
 import { AiPanel } from "./main/AiPanel";
+import { ManualPanel } from "./main/ManualPanel";
 
 export const QueryTools = () => {
   const [activeTab, setActiveTab] = useState<"ai" | "manual">("manual");
@@ -26,10 +27,7 @@ export const QueryTools = () => {
       )}
 
       {activeTab === "manual" && (
-        <div className="text-sm">
-          {/* Replace with real manual query builder UI */}
-          📝 Manual Query Builder UI Goes Here...
-        </div>
+        <ManualPanel />
       )}
     </div>
   );

@@ -1,26 +1,17 @@
 import React from "react";
 import EntitySection from "./EntitySection";
-
-interface DatabaseOption {
-  value: string;
-  label: string;
-}
+import { DatabaseOption } from "../../../types/database";
 
 interface DataExplorerProps {
   selectedDatabase?: string;
   onDatabaseChange?: (database: string) => void;
-  databases?: DatabaseOption[];
+  databases: DatabaseOption[];
 }
-
-const defaultDatabases: DatabaseOption[] = [
-  { value: "sales", label: "sales_db" },
-  { value: "marketing", label: "marketing_db" },
-];
 
 const DataExplorer: React.FC<DataExplorerProps> = ({
   selectedDatabase = "",
   onDatabaseChange,
-  databases = defaultDatabases,
+  databases,
 }) => {
   const handleDatabaseChange = (
     event: React.ChangeEvent<HTMLSelectElement>

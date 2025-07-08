@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { EntityField } from "@/types/database"
+import { ENTITIES } from "@/mock/MockData";
 
 const EntitySection = () => {
   const [expandedSections, setExpandedSections] = useState<
@@ -10,27 +12,11 @@ const EntitySection = () => {
     products: false,
   });
 
-  interface EntityField {
-    name: string;
-    type: string;
-  }
-
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
-
-  const entities = {
-    customers: [
-      { name: "customer_id", type: "int" },
-      { name: "name", type: "varchar" },
-      { name: "country", type: "varchar?" },
-      { name: "email", type: "varchar" },
-    ],
-    orders: [],
-    products: [],
   };
 
   interface SectionHeaderProps {
@@ -67,10 +53,10 @@ const EntitySection = () => {
 
   return (
     <div className="mt-3">
-      <h3 className="input-label font-semibold">Entities</h3>
+      <h3 className="input-label">Entities (3)</h3>
 
       <div className="rounded-lg border border-blue-300 overflow-hidden">
-        {Object.entries(entities).map(([entityName, fields]) => (
+        {Object.entries(ENTITIES).map(([entityName, fields]) => (
           <div key={entityName}>
             <SectionHeader
               title={entityName.charAt(0).toUpperCase() + entityName.slice(1)}
