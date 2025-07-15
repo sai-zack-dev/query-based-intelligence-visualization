@@ -3,8 +3,6 @@ import { DatabaseOption } from "@/types/database";
 import { QueryOption } from "@/types/query";
 import { Message } from "@/types/message";
 
-export const MOCK_COLUMNS = {};
-
 export const CONNECTIONS: ConnectionData[] = [
   {
     id: "1",

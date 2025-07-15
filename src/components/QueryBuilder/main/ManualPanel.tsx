@@ -1,6 +1,6 @@
-export const ManualPanel = () => {
+import { ENTITIES } from "@/mock/MockData";
 
-    
+export const ManualPanel = () => {
 
   return (
     <>
@@ -15,7 +15,22 @@ export const ManualPanel = () => {
               <label htmlFor="all">All Columns (*)</label>
             </div>
           </div>
+
+          <div>
+            {
+              Object.entries(ENTITIES).map(([table, columns]) => (
+                <div key={table}>
+                  {columns.length > 0 && 
+                    columns.map((col, idx) => (
+                      <div key={idx}>{col.name}</div>
+                    ))
+                  }
+                </div>
+              ))
+            }
+          </div>
         </div>
+
       </div>
 
       {/* Query Result */}
