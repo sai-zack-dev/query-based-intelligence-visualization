@@ -1,7 +1,7 @@
-import React from 'react';
-import { useSidebarToggle } from '../hooks/useSidebarToggle';
-import { Navbar } from '../components/common/Navbar';
-import { SidebarData } from '../types/sidebar';
+import React from "react";
+import { useSidebarToggle } from "@/hooks/useSidebarToggle";
+import { Navbar } from "@/components/common/Navbar";
+import { SidebarData } from "@/types/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactElement;
@@ -12,13 +12,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const sidebarData: SidebarData = {
     sidebarActive,
-    toggleSidebar
+    toggleSidebar,
   };
 
   return (
-    <div className="bg">
+    <div className="bg pt-25">
       <Navbar />
-      {React.cloneElement(children, sidebarData)}
+      <div className="flex gap-6 items-start">
+        {React.cloneElement(children, sidebarData)}
+      </div>
     </div>
   );
 };

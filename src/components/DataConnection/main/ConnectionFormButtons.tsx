@@ -1,6 +1,6 @@
 import React from "react";
 import { FaSave } from "react-icons/fa";
-import { ConnectionType } from "../../../types/connection";
+import { ConnectionType } from "@/types/connection";
 
 interface Props {
   connectionType: ConnectionType;

@@ -1,7 +1,7 @@
 import React from "react";
-import { ConnectionData, ConnectionType } from "../../types/connection";
-import { useConnectionForm } from "../../hooks/useConnectionForm";
-import { AlertBox } from "../../components/common/AlertBox";
+import { ConnectionData, ConnectionType } from "@/types/connection";
+import { useConnectionForm } from "@/hooks/useConnectionForm";
+import { AlertBox } from "@/components/common/AlertBox";
 import { ConnectionTypeSelector } from "./main/ConnectionTypeSelector";
 import { ConnectionNameInput } from "./main/ConnectionNameInput";
 import { ConnectionInputs } from "./main/ConnectionInputs";
@@ -47,7 +47,7 @@ export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
   };
 
   return (
-    <div className="p-6 pt-3 mx-0 sm:mx-6 rounded-xl bg-white shadow transition-all duration-300 w-full">
+    <div className="p-6 pt-3 mr-6 rounded-xl bg-white shadow flex-grow">
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
         <h2 className="font-semibold text-gray-800">Connection</h2>
       </div>

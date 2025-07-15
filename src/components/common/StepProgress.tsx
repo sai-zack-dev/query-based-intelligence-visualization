@@ -28,7 +28,7 @@ export const StepProgress: React.FC = () => {
         const circleStyle = clsx(
           "rounded-full flex items-center justify-center",
           {
-            "w-12 h-12 bg-gray-50 shadow-[inset_0_0_8px_0_#3B82F6] text-blue-500":
+            "w-12 h-12 bubble-wrap":
               status === "active",
             "w-10 h-10 bg-blue-500 text-white inset-ring-2 inset-ring-gray-100":
               status === "complete",

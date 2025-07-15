@@ -1,15 +1,12 @@
 import React from "react";
-import { ConnectionData } from '@/types/connection';
+import { ConnectionData } from "@/types/connection";
+import { Link } from "react-router-dom";
 
 type DataSourceProps = {
   connection: ConnectionData;
-  onChangeDataSource?: () => void;
 };
 
-const DataSource: React.FC<DataSourceProps> = ({ 
-  connection, 
-  onChangeDataSource 
-}) => {
+const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
   const typeColor = {
     MySQL: "bg-teal-100 text-teal-600",
     SQLite: "bg-blue-100 text-blue-600",
@@ -27,7 +24,9 @@ const DataSource: React.FC<DataSourceProps> = ({
       <div className="pl-10">
         <div className="flex justify-between items-center ">
           <div>
-            <h3 className="text-sm font-medium">{name || "Unnamed Connection"}</h3>
+            <h3 className="text-sm font-medium">
+              {name || "Unnamed Connection"}
+            </h3>
             {host && (
               <p className="text-xs text-gray-500">
                 {host}:{port}
@@ -40,12 +39,11 @@ const DataSource: React.FC<DataSourceProps> = ({
             {type}
           </div>
         </div>
-        <button 
-          className="w-full mt-4 text-xs cursor-pointer btn-outline"
-          onClick={onChangeDataSource}
-        >
-          Change Data Source
-        </button>
+        <Link to="/">
+          <button className="w-full mt-4 text-xs cursor-pointer btn-outline">
+            Change Data Source
+          </button>
+        </Link>
       </div>
     </>
   );

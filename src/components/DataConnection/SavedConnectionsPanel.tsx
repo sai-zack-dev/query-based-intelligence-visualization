@@ -23,14 +23,14 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
     sidebar
     ${
       sidebarActive
-        ? `translate-x-0 min-w-[300px]`
+        ? `translate-x-0 min-w-[300px] w-[300px] lg:w-[400px] xl:w-[500px]`
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();
 
   const toggleButtonClasses = `
     sidebar-toggle
-    ${sidebarActive ? `translate-x-[250px]` : "shadow translate-x-0"}
+    ${sidebarActive ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]` : "shadow translate-x-0"}
   `.trim();
 
   return (
