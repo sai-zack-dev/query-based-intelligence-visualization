@@ -38,7 +38,7 @@ export const AlertBox: React.FC<AlertBoxProps> = ({ type, message }) => {
   const { icon, label, classes } = variants[type];
 
   return (
-    <div className={`flex items-start gap-3 px-4 py-3 rounded-md border-s-5 ${classes}`}>
+    <div className={`flex my-3 items-start gap-3 px-4 py-3 rounded-md border-s-5 ${classes}`}>
       <div className="mt-0.5">{icon}</div>
       <div className="text-sm">
         <strong className="font-medium mr-1">{label}</strong>

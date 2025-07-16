@@ -5,22 +5,19 @@ import { app } from "electron";
 let db: Database.Database | null = null;
 
 function getDbPath(): string {
-  // Add a check to ensure app is ready
   if (!app.isReady()) {
     throw new Error("Cannot access userData path before app is ready");
   }
-  
+
   const p = path.join(app.getPath("userData"), "connections.db");
   console.log("Using SQLite path:", p);
   return p;
 }
 
-
 export function getDatabase() {
   if (!db) {
-    const dbPath = getDbPath(); // ✅ app.getPath() runs *after* app is ready
+    const dbPath = getDbPath();
     db = new Database(dbPath);
-    console.log(db)
     db.exec(`
       CREATE TABLE IF NOT EXISTS connections (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,8 +35,7 @@ export function getDatabase() {
 
 export function getAllConnections() {
   const db = getDatabase();
-  const stmt = db.prepare("SELECT * FROM connections");
-  return stmt.all();
+  return db.prepare("SELECT * FROM connections").all();
 }
 
 export function addConnection(conn: {
@@ -51,10 +47,50 @@ export function addConnection(conn: {
   database: string;
 }) {
   const db = getDatabase();
-  const stmt = db.prepare(`
+  db.prepare(`
     INSERT INTO connections (name, type, host, port, username, database)
     VALUES (@name, @type, @host, @port, @username, @database)
-  `);
-  stmt.run(conn);
+  `).run(conn);
 }
 
+export function findConnectionByName(name: string) {
+  const db = getDatabase();
+  return db.prepare("SELECT * FROM connections WHERE name = ?").get(name);
+}
+
+export function findConnectionByConfig(host: string, port: string, username: string) {
+  const db = getDatabase();
+  return db
+    .prepare("SELECT * FROM connections WHERE host = ? AND port = ? AND username = ?")
+    .get(host, port, username);
+}
+
+export function updateConnectionByName(conn: {
+  name: string;
+  type: string;
+  host: string;
+  port: string;
+  username: string;
+  database: string;
+}) {
+  const db = getDatabase();
+  db.prepare(`
+    UPDATE connections
+    SET type = @type, host = @host, port = @port, username = @username, database = @database
+    WHERE name = @name
+  `).run(conn);
+}
+
+export function updateConnectionNameByConfig(
+  name: string,
+  host: string,
+  port: string,
+  username: string
+) {
+  const db = getDatabase();
+  db.prepare(`
+    UPDATE connections
+    SET name = ?
+    WHERE host = ? AND port = ? AND username = ?
+  `).run(name, host, port, username);
+}

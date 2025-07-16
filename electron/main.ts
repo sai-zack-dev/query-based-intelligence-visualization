@@ -9,13 +9,17 @@ process.on("unhandledRejection", (reason) => {
 import { app, BrowserWindow, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import mysql from "mysql2/promise"; // ✅ import mysql2
-import { addConnection, getAllConnections } from "./db";
-// import { fileURLToPath } from 'url';
-// import path from 'path';
+import mysql from "mysql2/promise";
+import {
+  addConnection,
+  getAllConnections,
+  updateConnectionByName,
+  updateConnectionNameByConfig,
+  findConnectionByName,
+  findConnectionByConfig,
+} from "./db";
 
 (globalThis as any).__filename = fileURLToPath(import.meta.url);
-// (globalThis as any).__dirname = path.dirname(__filename);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -30,10 +34,6 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null;
 
 function createWindow() {
-  // console.log("Creating window...");
-  // console.log("VITE_DEV_SERVER_URL:", VITE_DEV_SERVER_URL);
-  // console.log("RENDERER_DIST:", RENDERER_DIST);
-
   win = new BrowserWindow({
     minWidth: 700,
     minHeight: 300,
@@ -42,9 +42,10 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
-  win.webContents.openDevTools();
+
+  // win.webContents.openDevTools();
+
   win.webContents.on("did-finish-load", () => {
-    // console.log("Renderer loaded.");
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 
@@ -70,7 +71,7 @@ app.on("activate", () => {
 
 app.whenReady().then(createWindow);
 
-// ✅✅✅ Add MySQL IPC handler here
+// MySQL Test Handler
 ipcMain.handle("test-mysql-connection", async (_, config) => {
   const { host, port, username, password, database } = config;
 
@@ -92,12 +93,138 @@ ipcMain.handle("test-mysql-connection", async (_, config) => {
   }
 });
 
-ipcMain.handle("save-connection", (_, conn) => {
-  addConnection(conn);
-  return { success: true };
+// Save Connection Handler with Conflict Check
+ipcMain.handle("save-connection", async (_, conn) => {
+  try {
+    // Validate required fields without throwing
+    const missingFields = [];
+    if (!conn?.name) missingFields.push("Name");
+    if (!conn?.host) missingFields.push("Host");
+    if (!conn?.port) missingFields.push("Port");
+    if (!conn?.username) missingFields.push("Username");
+
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      };
+    }
+
+    const nameMatch = findConnectionByName(conn.name);
+    const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
+
+    if (nameMatch) {
+      return { conflict: "name", existing: nameMatch };
+    } else if (configMatch) {
+      return { conflict: "config", existing: configMatch };
+    }
+
+    addConnection(conn);
+    return { success: true };
+  } catch (err: any) {
+    console.error("Failed to save connection:", err);
+    return { success: false, message: err.message || "Unknown error" };
+  }
 });
 
+// Update connection by name
+ipcMain.handle("update-connection-by-name", async (_, conn) => {
+  try {
+    // Validate required fields
+    const missingFields = [];
+    if (!conn?.name) missingFields.push("Name");
+    if (!conn?.host) missingFields.push("Host");
+    if (!conn?.port) missingFields.push("Port");
+    if (!conn?.username) missingFields.push("Username");
+
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      };
+    }
+
+    updateConnectionByName(conn);
+    return { success: true };
+  } catch (err: any) {
+    console.error("Failed to update connection:", err);
+    return { success: false, message: err.message || "Update failed" };
+  }
+});
+
+// Update connection name by config (host+port+username)
+ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
+  try {
+    // Validate required fields
+    const missingFields = [];
+    if (!payload?.name) missingFields.push("Name");
+    if (!payload?.host) missingFields.push("Host");
+    if (!payload?.port) missingFields.push("Port");
+    if (!payload?.username) missingFields.push("Username");
+
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      };
+    }
+
+    updateConnectionNameByConfig(payload.name, payload.host, payload.port, payload.username);
+    return { success: true };
+  } catch (err: any) {
+    console.error("Failed to update connection name:", err);
+    return { success: false, message: err.message || "Rename failed" };
+  }
+});
+
+// Force create connection with unique name handling
+ipcMain.handle("force-create-connection", async (_, conn) => {
+  try {
+    // Validate required fields
+    const missingFields = [];
+    if (!conn?.name) missingFields.push("Name");
+    if (!conn?.host) missingFields.push("Host");
+    if (!conn?.port) missingFields.push("Port");
+    if (!conn?.username) missingFields.push("Username");
+
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      };
+    }
+
+    // Generate a unique name if needed
+    let uniqueName = conn.name;
+    let counter = 1;
+    while (findConnectionByName(uniqueName)) {
+      uniqueName = `${conn.name}_${counter}`;
+      counter++;
+    }
+
+    const connectionWithUniqueName = {
+      ...conn,
+      name: uniqueName,
+    };
+
+    addConnection(connectionWithUniqueName);
+    return { success: true, savedName: uniqueName };
+  } catch (err: any) {
+    console.error("Failed to force create connection:", err);
+    return { success: false, message: err.message || "Unknown error" };
+  }
+});
+
+// Get all connections
 ipcMain.handle("get-connections", () => {
-  const connections = getAllConnections();
-  return connections;
+  try {
+    return getAllConnections();
+  } catch (err: any) {
+    console.error("Failed to get connections:", err);
+    return { success: false, message: err.message || "Failed to retrieve connections" };
+  }
 });

@@ -16,10 +16,10 @@ export const SavedConnectionCard: React.FC<Props> = ({
 
   const getTypeColor = (type: string): string => {
     const colors = {
-      MySQL: "bg-teal-100 text-teal-600",
-      SQLite: "bg-blue-100 text-blue-600",
-      Excel: "bg-green-100 text-green-600",
-      CSV: "bg-indigo-100 text-indigo-600",
+      mysql: "bg-teal-100 text-teal-600",
+      sqlite: "bg-blue-100 text-blue-600",
+      excel: "bg-green-100 text-green-600",
+      csv: "bg-indigo-100 text-indigo-600",
     };
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-600";
   };

@@ -18156,27 +18156,21 @@ let CloseStatement$2 = class CloseStatement {
 };
 var close_statement$1 = CloseStatement$2;
 var field_flags = {};
-var hasRequiredField_flags;
-function requireField_flags() {
-  if (hasRequiredField_flags) return field_flags;
-  hasRequiredField_flags = 1;
-  field_flags.NOT_NULL = 1;
-  field_flags.PRI_KEY = 2;
-  field_flags.UNIQUE_KEY = 4;
-  field_flags.MULTIPLE_KEY = 8;
-  field_flags.BLOB = 16;
-  field_flags.UNSIGNED = 32;
-  field_flags.ZEROFILL = 64;
-  field_flags.BINARY = 128;
-  field_flags.ENUM = 256;
-  field_flags.AUTO_INCREMENT = 512;
-  field_flags.TIMESTAMP = 1024;
-  field_flags.SET = 2048;
-  field_flags.NO_DEFAULT_VALUE = 4096;
-  field_flags.ON_UPDATE_NOW = 8192;
-  field_flags.NUM = 32768;
-  return field_flags;
-}
+field_flags.NOT_NULL = 1;
+field_flags.PRI_KEY = 2;
+field_flags.UNIQUE_KEY = 4;
+field_flags.MULTIPLE_KEY = 8;
+field_flags.BLOB = 16;
+field_flags.UNSIGNED = 32;
+field_flags.ZEROFILL = 64;
+field_flags.BINARY = 128;
+field_flags.ENUM = 256;
+field_flags.AUTO_INCREMENT = 512;
+field_flags.TIMESTAMP = 1024;
+field_flags.SET = 2048;
+field_flags.NO_DEFAULT_VALUE = 4096;
+field_flags.ON_UPDATE_NOW = 8192;
+field_flags.NUM = 32768;
 const Packet$b = packet;
 const StringParser$2 = string;
 const CharsetToEncoding$7 = requireCharset_encodings();
@@ -18240,7 +18234,7 @@ class ColumnDefinition {
     for (const t in Types2) {
       typeNames2[Types2[t]] = t;
     }
-    const fiedFlags = requireField_flags();
+    const fiedFlags = field_flags;
     const flagNames2 = [];
     const inspectFlags = this.flags;
     for (const f in fiedFlags) {
@@ -21271,7 +21265,7 @@ let CloseStatement$1 = class CloseStatement2 extends Command$7 {
   }
 };
 var close_statement = CloseStatement$1;
-const FieldFlags$1 = requireField_flags();
+const FieldFlags$1 = field_flags;
 const Charsets$2 = requireCharsets();
 const Types$1 = requireTypes();
 const helpers$1 = helpers$4;
@@ -21460,7 +21454,7 @@ function getBinaryParser$2(fields2, options, config) {
   return parserCache.getParser("binary", fields2, options, config, compile);
 }
 var binary_parser = getBinaryParser$2;
-const FieldFlags = requireField_flags();
+const FieldFlags = field_flags;
 const Charsets$1 = requireCharsets();
 const Types = requireTypes();
 const helpers = helpers$4;
@@ -25739,7 +25733,6 @@ function getDatabase() {
   if (!db) {
     const dbPath = getDbPath();
     db = new Database(dbPath);
-    console.log(db);
     db.exec(`
       CREATE TABLE IF NOT EXISTS connections (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25756,16 +25749,38 @@ function getDatabase() {
 }
 function getAllConnections() {
   const db2 = getDatabase();
-  const stmt = db2.prepare("SELECT * FROM connections");
-  return stmt.all();
+  return db2.prepare("SELECT * FROM connections").all();
 }
 function addConnection(conn) {
   const db2 = getDatabase();
-  const stmt = db2.prepare(`
+  db2.prepare(`
     INSERT INTO connections (name, type, host, port, username, database)
     VALUES (@name, @type, @host, @port, @username, @database)
-  `);
-  stmt.run(conn);
+  `).run(conn);
+}
+function findConnectionByName(name) {
+  const db2 = getDatabase();
+  return db2.prepare("SELECT * FROM connections WHERE name = ?").get(name);
+}
+function findConnectionByConfig(host, port, username) {
+  const db2 = getDatabase();
+  return db2.prepare("SELECT * FROM connections WHERE host = ? AND port = ? AND username = ?").get(host, port, username);
+}
+function updateConnectionByName(conn) {
+  const db2 = getDatabase();
+  db2.prepare(`
+    UPDATE connections
+    SET type = @type, host = @host, port = @port, username = @username, database = @database
+    WHERE name = @name
+  `).run(conn);
+}
+function updateConnectionNameByConfig(name, host, port, username) {
+  const db2 = getDatabase();
+  db2.prepare(`
+    UPDATE connections
+    SET name = ?
+    WHERE host = ? AND port = ? AND username = ?
+  `).run(name, host, port, username);
 }
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
@@ -25790,7 +25805,6 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs")
     }
   });
-  win.webContents.openDevTools();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
@@ -25829,13 +25843,114 @@ ipcMain.handle("test-mysql-connection", async (_, config) => {
     return { success: false, message: err.message };
   }
 });
-ipcMain.handle("save-connection", (_, conn) => {
-  addConnection(conn);
-  return { success: true };
+ipcMain.handle("save-connection", async (_, conn) => {
+  try {
+    const missingFields = [];
+    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
+    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
+    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
+    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields
+      };
+    }
+    const nameMatch = findConnectionByName(conn.name);
+    const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
+    if (nameMatch) {
+      return { conflict: "name", existing: nameMatch };
+    } else if (configMatch) {
+      return { conflict: "config", existing: configMatch };
+    }
+    addConnection(conn);
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to save connection:", err);
+    return { success: false, message: err.message || "Unknown error" };
+  }
+});
+ipcMain.handle("update-connection-by-name", async (_, conn) => {
+  try {
+    const missingFields = [];
+    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
+    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
+    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
+    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields
+      };
+    }
+    updateConnectionByName(conn);
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to update connection:", err);
+    return { success: false, message: err.message || "Update failed" };
+  }
+});
+ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
+  try {
+    const missingFields = [];
+    if (!(payload == null ? void 0 : payload.name)) missingFields.push("Name");
+    if (!(payload == null ? void 0 : payload.host)) missingFields.push("Host");
+    if (!(payload == null ? void 0 : payload.port)) missingFields.push("Port");
+    if (!(payload == null ? void 0 : payload.username)) missingFields.push("Username");
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields
+      };
+    }
+    updateConnectionNameByConfig(payload.name, payload.host, payload.port, payload.username);
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to update connection name:", err);
+    return { success: false, message: err.message || "Rename failed" };
+  }
+});
+ipcMain.handle("force-create-connection", async (_, conn) => {
+  try {
+    const missingFields = [];
+    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
+    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
+    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
+    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields
+      };
+    }
+    let uniqueName = conn.name;
+    let counter = 1;
+    while (findConnectionByName(uniqueName)) {
+      uniqueName = `${conn.name}_${counter}`;
+      counter++;
+    }
+    const connectionWithUniqueName = {
+      ...conn,
+      name: uniqueName
+    };
+    addConnection(connectionWithUniqueName);
+    return { success: true, savedName: uniqueName };
+  } catch (err) {
+    console.error("Failed to force create connection:", err);
+    return { success: false, message: err.message || "Unknown error" };
+  }
 });
 ipcMain.handle("get-connections", () => {
-  const connections = getAllConnections();
-  return connections;
+  try {
+    return getAllConnections();
+  } catch (err) {
+    console.error("Failed to get connections:", err);
+    return { success: false, message: err.message || "Failed to retrieve connections" };
+  }
 });
 export {
   MAIN_DIST,
