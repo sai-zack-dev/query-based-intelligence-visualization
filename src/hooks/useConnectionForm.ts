@@ -86,52 +86,50 @@ export const useConnectionForm = (
   const handleSubmit = async () => {
     resetStatus();
 
-    // try {
-    //   // Step 1: Save the connection
-    //   await window.ipcRenderer.invoke("save-connection", {
-    //     name: formData.name,
-    //     type: connectionType,
-    //     host: formData.host,
-    //     port: formData.port,
-    //     username: formData.username,
-    //     database: formData.database,
-    //   });
-    // console.log("save ok")
+    try {
+      // Step 1: Save the connection
+      await window.ipcRenderer.invoke("save-connection", {
+        name: formData.name,
+        type: connectionType,
+        host: formData.host,
+        port: formData.port,
+        username: formData.username,
+        database: formData.database,
+      });
 
-    //   // Step 2: Test the connection
-    //   const response = await window.ipcRenderer.invoke(
-    //     "test-mysql-connection",
-    //     {
-    //       host: formData.host,
-    //       port: formData.port,
-    //       username: formData.username,
-    //       password: formData.password,
-    //       database: formData.database,
-    //     }
-    //   );
-    // console.log("test ok")
+      // Step 2: Test the connection
+      const response = await window.ipcRenderer.invoke(
+        "test-mysql-connection",
+        {
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          database: formData.database,
+        }
+      );
 
-    //   // Step 3: If successful, redirect
-    //   if (response.success) {
-    //     setStatus({ type: "success", message: "Connection successful!" });
-    // console.log("handleSubmit end")
+      // Step 3: If successful, redirect
+      if (response.success) {
+        setStatus({ type: "success", message: "Connection successful!" });
+        console.log("handleSubmit end");
 
-    //     // Delay slightly to show success message
-    //     setTimeout(() => {
-    //       navigate("/query"); // <-- your route for the next screen
-    //     }, 800);
-    //   } else {
-    //     setStatus({
-    //       type: "error",
-    //       message: response.message || "Connection failed.",
-    //     });
-    //   }
-    // } catch (err: any) {
-    //   setStatus({
-    //     type: "error",
-    //     message: err.message || "Unexpected error occurred.",
-    //   });
-    // }
+        // Delay slightly to show success message
+        setTimeout(() => {
+          navigate("/query"); // <-- your route for the next screen
+        }, 800);
+      } else {
+        setStatus({
+          type: "error",
+          message: response.message || "Connection failed.",
+        });
+      }
+    } catch (err: any) {
+      setStatus({
+        type: "error",
+        message: err.message || "Unexpected error occurred.",
+      });
+    }
   };
 
   return {
