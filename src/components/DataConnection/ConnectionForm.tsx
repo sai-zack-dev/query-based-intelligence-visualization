@@ -73,12 +73,8 @@ export const ConnectionForm: React.FC<Props> = ({ selectedConnection }) => {
           onFileChange={handleFileChange}
         />
 
-        {status === "success" && (
-          <AlertBox type="success" message="Connected to the database." />
-        )}
-
-        {status === "error" && (
-          <AlertBox type="error" message="Something went wrong." />
+        {status.type && (
+          <AlertBox type={status.type} message={status.message} />
         )}
 
         {connectionType && (

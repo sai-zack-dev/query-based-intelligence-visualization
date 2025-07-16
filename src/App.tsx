@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import DataConnectionPage from "@/pages/DataConnectionPage";
-import QueryBuilderPage from "@/pages/QueryBuilderPage";
-import ChartGenerationPage from "@/pages/ChartGenerationPage";
-import DashboardPage from "@/pages/DashboardsPage";
-import MainLayout from "@/pages/MainLayout";
+import DataConnectionPage from "@/screen/DataConnectionPage";
+import QueryBuilderPage from "@/screen/QueryBuilderPage";
+import ChartGenerationPage from "@/screen/ChartGenerationPage";
+import DashboardPage from "@/screen/DashboardsPage";
+import MainLayout from "@/screen/MainLayout";
 
 const App = () => (
   <BrowserRouter>

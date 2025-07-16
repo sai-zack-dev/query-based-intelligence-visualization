@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { ConnectionData } from "@/types/connection";
+import { useNavigate } from "react-router-dom";
 
 export const useConnectionForm = (
   selectedConnection: ConnectionData | null
 ) => {
+  const navigate = useNavigate();
   const [connectionType, setConnectionType] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -12,9 +14,19 @@ export const useConnectionForm = (
     port: "",
     username: "",
     password: "",
+    database: "",
   });
-  
-  const [status, setStatus] = useState<"success" | "error" | null>(null);
+
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "warning" | "info" | null;
+    message: string;
+  }>({
+    type: null,
+    message: "",
+  });
+  const resetStatus = () => {
+    setStatus({ type: null, message: "" });
+  };
 
   useEffect(() => {
     if (selectedConnection) {
@@ -26,6 +38,7 @@ export const useConnectionForm = (
         port: selectedConnection.port?.toString() ?? "",
         username: "",
         password: "",
+        database: "",
       });
     } else {
       setConnectionType("");
@@ -36,25 +49,89 @@ export const useConnectionForm = (
         port: "",
         username: "",
         password: "",
+        database: "",
       });
     }
-    setStatus(null);
+    resetStatus();
   }, [selectedConnection]);
 
-  const handleTestConnection = () => {
-    setStatus(null);
-    setTimeout(() => {
-      // Simulate success or failure
-      const random = Math.random();
-      setStatus(random < 0.5 ? "success" : "error");
-    }, 500);
+  const handleTestConnection = async () => {
+    try {
+      const response = await window.ipcRenderer.invoke(
+        "test-mysql-connection",
+        {
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          database: formData.database,
+        }
+      );
+      if (response.success) {
+        setStatus({ type: "success", message: "Connected to the database." });
+      } else {
+        setStatus({
+          type: "error",
+          message: response.message || "Connection failed.",
+        });
+      }
+    } catch (error: any) {
+      setStatus({
+        type: "error",
+        message: error.message || "Unexpected error occurred.",
+      });
+    }
   };
 
-  const handleSubmit = () => {
-    // Here you would typically send the formData to your backend
-    console.log("Submitting connection data:", formData);
-    // Reset status after submission
-    setStatus(null);
+  const handleSubmit = async () => {
+    resetStatus();
+
+    // try {
+    //   // Step 1: Save the connection
+    //   await window.ipcRenderer.invoke("save-connection", {
+    //     name: formData.name,
+    //     type: connectionType,
+    //     host: formData.host,
+    //     port: formData.port,
+    //     username: formData.username,
+    //     database: formData.database,
+    //   });
+    // console.log("save ok")
+
+    //   // Step 2: Test the connection
+    //   const response = await window.ipcRenderer.invoke(
+    //     "test-mysql-connection",
+    //     {
+    //       host: formData.host,
+    //       port: formData.port,
+    //       username: formData.username,
+    //       password: formData.password,
+    //       database: formData.database,
+    //     }
+    //   );
+    // console.log("test ok")
+
+    //   // Step 3: If successful, redirect
+    //   if (response.success) {
+    //     setStatus({ type: "success", message: "Connection successful!" });
+    // console.log("handleSubmit end")
+
+    //     // Delay slightly to show success message
+    //     setTimeout(() => {
+    //       navigate("/query"); // <-- your route for the next screen
+    //     }, 800);
+    //   } else {
+    //     setStatus({
+    //       type: "error",
+    //       message: response.message || "Connection failed.",
+    //     });
+    //   }
+    // } catch (err: any) {
+    //   setStatus({
+    //     type: "error",
+    //     message: err.message || "Unexpected error occurred.",
+    //   });
+    // }
   };
 
   return {
@@ -66,6 +143,6 @@ export const useConnectionForm = (
     setFormData,
     status,
     handleTestConnection,
-    handleSubmit
+    handleSubmit,
   };
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { FaLink, FaDatabase } from "react-icons/fa";
 import { IoBarChart } from "react-icons/io5";
@@ -52,8 +52,8 @@ export const StepProgress: React.FC = () => {
         const showLine = index < steps.length - 1;
 
         return (
-          <>
-            <div key={step.label} className="flex">
+          <Fragment key={step.path}>
+            <div className="flex">
               <Link
                 to={step.path}
                 className="flex flex-col items-center min-w-30"
@@ -67,7 +67,7 @@ export const StepProgress: React.FC = () => {
               </Link>
             </div>
             {showLine && <div className={lineStyle}></div>}
-          </>
+          </Fragment>
         );
       })}
     </div>
