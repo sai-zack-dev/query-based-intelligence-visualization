@@ -69,7 +69,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
         {/* Add Button */}
         {sidebarActive && (
           <button
-            className="w-full mt-4 text-xs cursor-pointer btn-outline"
+            className="w-full mt-4 text-sm btn-outline"
             onClick={onAddNewConnection}
           >
             + Add New Connection

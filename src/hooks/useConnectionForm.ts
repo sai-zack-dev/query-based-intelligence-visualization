@@ -8,10 +8,19 @@ export type DialogType =
   | "validation-error" 
   | null;
 
+type DialogTrigger = (
+  type: DialogType,
+  title: string,
+  message: string,
+  onAction?: (action: string) => void
+) => void;
+
 export const useConnectionForm = (
-  selectedConnection: ConnectionData | null
+  selectedConnection: ConnectionData | null,
+  onDialogTrigger?: DialogTrigger
 ) => {
   const navigate = useNavigate();
+
   const [connectionType, setConnectionType] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -31,46 +40,8 @@ export const useConnectionForm = (
     message: "",
   });
 
-  // Dialog state management
-  const [dialogState, setDialogState] = useState<{
-    type: DialogType;
-    isOpen: boolean;
-    title: string;
-    message: string;
-    existingConnection?: any;
-  }>({
-    type: null,
-    isOpen: false,
-    title: "",
-    message: "",
-  });
-
   const resetStatus = () => {
     setStatus({ type: null, message: "" });
-  };
-
-  const closeDialog = () => {
-    setDialogState({
-      type: null,
-      isOpen: false,
-      title: "",
-      message: "",
-    });
-  };
-
-  const showDialog = (
-    type: DialogType,
-    title: string,
-    message: string,
-    existingConnection?: any
-  ) => {
-    setDialogState({
-      type,
-      isOpen: true,
-      title,
-      message,
-      existingConnection,
-    });
   };
 
   useEffect(() => {
@@ -136,35 +107,30 @@ export const useConnectionForm = (
     if (!formData.username) missingFields.push("Username");
 
     if (missingFields.length > 0) {
-      showDialog(
+      onDialogTrigger?.(
         "validation-error",
         "Missing Required Fields",
         `Please fill in the following required fields: ${missingFields.join(", ")}`
       );
       return false;
     }
+
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     resetStatus();
 
     try {
-      // Step 1: Test MySQL Connection
-      const response = await window.ipcRenderer.invoke(
-        "test-mysql-connection",
-        {
-          host: formData.host,
-          port: formData.port,
-          username: formData.username,
-          password: formData.password,
-          database: formData.database,
-        }
-      );
+      const response = await window.ipcRenderer.invoke("test-mysql-connection", {
+        host: formData.host,
+        port: formData.port,
+        username: formData.username,
+        password: formData.password,
+        database: formData.database,
+      });
 
       if (!response.success) {
         setStatus({
@@ -174,7 +140,6 @@ export const useConnectionForm = (
         return;
       }
 
-      // Step 2: Attempt Save
       const saveResponse = await window.ipcRenderer.invoke("save-connection", {
         name: formData.name,
         type: connectionType,
@@ -190,20 +155,58 @@ export const useConnectionForm = (
         return;
       }
 
-      // Step 3: Handle Conflicts with Dialogs
+      // Conflict resolution
       if (saveResponse.conflict === "name") {
-        showDialog(
+        onDialogTrigger?.(
           "name-conflict",
           "Connection Name Exists",
           "A connection with this name already exists. Do you want to overwrite it?",
-          saveResponse.existing
+          async (action) => {
+            if (action === "save") {
+              await window.ipcRenderer.invoke("update-connection-by-name", {
+                name: formData.name,
+                type: connectionType,
+                host: formData.host,
+                port: formData.port,
+                username: formData.username,
+                database: formData.database,
+              });
+              setStatus({ type: "success", message: "Connection updated!" });
+              setTimeout(() => navigate("/query"), 800);
+            }
+          }
         );
       } else if (saveResponse.conflict === "config") {
-        showDialog(
+        onDialogTrigger?.(
           "config-conflict",
           "Similar Connection Found",
-          "A connection with the same host/port/username exists but with a different name. Do you want to update its name or create new?",
-          saveResponse.existing
+          "A connection with the same host/port/username exists but with a different name. Do you want to update its name or create a new one?",
+          async (action) => {
+            if (action === "update") {
+              await window.ipcRenderer.invoke("update-connection-name-by-config", {
+                name: formData.name,
+                host: formData.host,
+                port: formData.port,
+                username: formData.username,
+              });
+              setStatus({ type: "success", message: "Connection name updated!" });
+              setTimeout(() => navigate("/query"), 800);
+            } else if (action === "create") {
+              const forceResponse = await window.ipcRenderer.invoke("force-create-connection", {
+                name: formData.name,
+                type: connectionType,
+                host: formData.host,
+                port: formData.port,
+                username: formData.username,
+                database: formData.database,
+              });
+
+              if (forceResponse.success) {
+                setStatus({ type: "success", message: "New connection created!" });
+                setTimeout(() => navigate("/query"), 800);
+              }
+            }
+          }
         );
       }
     } catch (err: any) {
@@ -214,65 +217,6 @@ export const useConnectionForm = (
     }
   };
 
-  const handleDialogAction = async (action: string) => {
-    try {
-      switch (dialogState.type) {
-        case "name-conflict":
-          if (action === "save") {
-            await window.ipcRenderer.invoke("update-connection-by-name", {
-              name: formData.name,
-              type: connectionType,
-              host: formData.host,
-              port: formData.port,
-              username: formData.username,
-              database: formData.database,
-            });
-            setStatus({ type: "success", message: "Connection updated!" });
-            setTimeout(() => navigate("/query"), 800);
-          }
-          break;
-
-        case "config-conflict":
-          if (action === "update") {
-            await window.ipcRenderer.invoke("update-connection-name-by-config", {
-              name: formData.name,
-              host: formData.host,
-              port: formData.port,
-              username: formData.username,
-            });
-            setStatus({ type: "success", message: "Connection name updated!" });
-            setTimeout(() => navigate("/query"), 800);
-          } else if (action === "create") {
-            // Force create new connection (you might need to implement this in your backend)
-            const forceResponse = await window.ipcRenderer.invoke("force-create-connection", {
-              name: formData.name,
-              type: connectionType,
-              host: formData.host,
-              port: formData.port,
-              username: formData.username,
-              database: formData.database,
-            });
-            if (forceResponse.success) {
-              setStatus({ type: "success", message: "New connection created!" });
-              setTimeout(() => navigate("/query"), 800);
-            }
-          }
-          break;
-
-        case "validation-error":
-          // Just close the dialog, user needs to fill the form
-          break;
-      }
-    } catch (error: any) {
-      setStatus({
-        type: "error",
-        message: error.message || "An error occurred while processing your request.",
-      });
-    }
-    
-    closeDialog();
-  };
-
   return {
     connectionType,
     setConnectionType,
@@ -281,10 +225,7 @@ export const useConnectionForm = (
     formData,
     setFormData,
     status,
-    dialogState,
     handleTestConnection,
     handleSubmit,
-    handleDialogAction,
-    closeDialog,
   };
 };

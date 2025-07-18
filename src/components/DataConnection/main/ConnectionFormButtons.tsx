@@ -16,20 +16,20 @@ export const ConnectionFormButtons: React.FC<Props> = ({
   const isFileImport = ["excel", "csv", "sqlite"].includes(connectionType);
 
   return (
-    <div className="flex justify-end mt-3 gap-2">
+    <div className="flex justify-end mt-3 gap-2 w-full">
       <button
         type="button"
-        className="btn-outline w-1/2 md:w-auto text-xs"
+        className="btn-outline text-xs md:text-sm flex-1 max-w-[200px]"
         onClick={onTestConnection}
       >
         {isFileImport ? "Test Template" : "Test Connection"}
       </button>
       <button
         type="submit"
-        className="btn-primary w-1/2 md:w-auto text-xs flex justify-center items-center gap-2"
+        className="btn-primary text-xs md:text-sm flex-1 flex justify-center items-center gap-2 max-w-[200px]"
         onClick={onSubmit}
       >
-        <FaSave />
+        <FaSave className="w-4 h-4" />
         {isFileImport ? "Save and Import" : "Save and Connect"}
       </button>
     </div>

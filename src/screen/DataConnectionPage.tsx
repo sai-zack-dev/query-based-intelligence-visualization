@@ -25,20 +25,28 @@ const DataConnectionPage: React.FC<Props> = ({
   const [dialogType, setDialogType] = useState<DialogType>(null);
   const [dialogTitle, setDialogTitle] = useState("");
   const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogCallback, setDialogCallback] = useState<((action: string) => void) | null>(null);
 
-  const openDialog = (type: DialogType, title: string, message: string) => {
+  const openDialog = (
+    type: DialogType,
+    title: string,
+    message: string,
+    onAction?: (action: string) => void
+  ) => {
     setDialogType(type);
     setDialogTitle(title);
     setDialogMessage(message);
+    setDialogCallback(() => onAction || (() => {}));
     setDialogOpen(true);
   };
 
   const closeDialog = () => {
     setDialogOpen(false);
+    setDialogCallback(null);
   };
 
   const handleDialogAction = (action: string) => {
-    console.log("Dialog action:", action);
+    if (dialogCallback) dialogCallback(action);
     closeDialog();
   };
 
@@ -61,8 +69,7 @@ const DataConnectionPage: React.FC<Props> = ({
 
       <ConnectionForm
         selectedConnection={selectedConnection}
-        onDialogTrigger={() => console.log("trigger dialog")
-        }
+        onDialogTrigger={openDialog}
       />
 
       <ConnectionDialog

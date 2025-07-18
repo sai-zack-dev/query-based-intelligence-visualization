@@ -6,11 +6,17 @@ import { ConnectionTypeSelector } from "./main/ConnectionTypeSelector";
 import { ConnectionNameInput } from "./main/ConnectionNameInput";
 import { ConnectionInputs } from "./main/ConnectionInputs";
 import { ConnectionFormButtons } from "./main/ConnectionFormButtons";
+import { DialogType } from "@/hooks/useConnectionForm";
 
 interface Props {
   selectedConnection: ConnectionData | null;
   onTypeChange?: (type: ConnectionType) => void;
-  onDialogTrigger?: () => void;
+  onDialogTrigger?: (
+    type: DialogType,
+    title: string,
+    message: string,
+    onAction?: (action: string) => void
+  ) => void;
 }
 
 export const ConnectionForm: React.FC<Props> = ({
@@ -28,14 +34,13 @@ export const ConnectionForm: React.FC<Props> = ({
     status,
     handleTestConnection,
     handleSubmit,
-  } = useConnectionForm(selectedConnection);
+  } = useConnectionForm(selectedConnection, onDialogTrigger); // <-- Pass dialog trigger
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setFileName(file.name);
   };
 
-  // Use string instead of keyof FormData for compatibility
   const handleFormChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -55,37 +60,41 @@ export const ConnectionForm: React.FC<Props> = ({
         <h2 className="font-semibold text-gray-800">Connection</h2>
       </div>
 
-      <ConnectionTypeSelector
-        connectionType={connectionType as ConnectionType}
-        onTypeChange={handleTypeChange}
-      />
-
-      {connectionType && (
-        <ConnectionNameInput
-          name={formData.name}
-          onNameChange={handleNameChange}
-        />
-      )}
-
-      {connectionType && (
-        <ConnectionInputs
+      <div className="flex flex-col gap-3">
+        <ConnectionTypeSelector
           connectionType={connectionType as ConnectionType}
-          formData={formData}
-          fileName={fileName || ""}
-          onFormChange={handleFormChange}
-          onFileChange={handleFileChange}
+          onTypeChange={handleTypeChange}
         />
-      )}
-      
-      {status.type && <AlertBox type={status.type} message={status.message} />}
 
-      {connectionType && (
-        <ConnectionFormButtons
-          connectionType={connectionType as ConnectionType}
-          onTestConnection={handleTestConnection}
-          onSubmit={handleSubmit}
-        />
-      )}
+        {connectionType && (
+          <ConnectionNameInput
+            name={formData.name}
+            onNameChange={handleNameChange}
+          />
+        )}
+
+        {connectionType && (
+          <ConnectionInputs
+            connectionType={connectionType as ConnectionType}
+            formData={formData}
+            fileName={fileName || ""}
+            onFormChange={handleFormChange}
+            onFileChange={handleFileChange}
+          />
+        )}
+
+        {status.type && (
+          <AlertBox type={status.type} message={status.message} />
+        )}
+
+        {connectionType && (
+          <ConnectionFormButtons
+            connectionType={connectionType as ConnectionType}
+            onTestConnection={handleTestConnection}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </div>
     </div>
   );
 };
