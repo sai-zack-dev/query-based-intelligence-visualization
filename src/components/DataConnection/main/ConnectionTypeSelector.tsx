@@ -6,6 +6,15 @@ interface Props {
   onTypeChange: (type: ConnectionType) => void;
 }
 
+// For now, only show MySQL; later add others by uncommenting or expanding
+const options: { label: string; value: ConnectionType | "" }[] = [
+  { label: "Select connection type", value: "" },
+  { label: "MySQL", value: "mysql" },
+  { label: "Excel", value: "excel" },
+  { label: "CSV", value: "csv" },
+  { label: "SQLite", value: "sqlite" },
+];
+
 export const ConnectionTypeSelector: React.FC<Props> = ({
   connectionType,
   onTypeChange,
@@ -18,11 +27,11 @@ export const ConnectionTypeSelector: React.FC<Props> = ({
         value={connectionType}
         onChange={(e) => onTypeChange(e.target.value as ConnectionType)}
       >
-        <option value="">Select connection type</option>
-        <option value="mysql">MySQL</option>
-        <option value="excel">Excel</option>
-        <option value="csv">CSV</option>
-        <option value="sqlite">SQLite</option>
+        {options.map((option) => (
+          <option key={option.value || "default"} value={option.value}>
+            {option.label}
+          </option>
+        ))}
       </select>
     </div>
   );

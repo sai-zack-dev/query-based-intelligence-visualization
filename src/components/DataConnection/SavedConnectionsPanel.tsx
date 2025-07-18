@@ -30,7 +30,11 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
 
   const toggleButtonClasses = `
     sidebar-toggle
-    ${sidebarActive ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]` : "shadow translate-x-0"}
+    ${
+      sidebarActive
+        ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]`
+        : "shadow translate-x-0"
+    }
   `.trim();
 
   return (
@@ -46,20 +50,26 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
 
         {/* Connections List */}
         <div className="space-y-2 overflow-y-auto max-h-[100vh] pr-1">
-          {connections.map((connection) => (
-            <SavedConnectionCard
-              key={connection.id}
-              connection={connection}
-              active={connection.id === activeConnectionId}
-              onClick={() => setActiveConnectionId(connection.id)}
-            />
-          ))}
+          {connections.length === 0 ? (
+            <p className="text-gray-500 text-center my-4">
+              No saved connections
+            </p>
+          ) : (
+            connections.map((connection) => (
+              <SavedConnectionCard
+                key={connection.id}
+                connection={connection}
+                active={connection.id === activeConnectionId}
+                onClick={() => setActiveConnectionId(connection.id)}
+              />
+            ))
+          )}
         </div>
 
         {/* Add Button */}
         {sidebarActive && (
           <button
-            className="w-full mt-4 text-xs cursor-pointer btn-outline"
+            className="w-full mt-4 text-sm btn-outline"
             onClick={onAddNewConnection}
           >
             + Add New Connection

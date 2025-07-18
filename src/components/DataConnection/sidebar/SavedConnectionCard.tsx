@@ -1,5 +1,5 @@
 import React from "react";
-import { ConnectionData } from '@/types/connection';
+import { ConnectionData } from "@/types/connection";
 
 interface Props {
   connection: ConnectionData;
@@ -14,15 +14,23 @@ export const SavedConnectionCard: React.FC<Props> = ({
 }) => {
   const { name, type, host, port, file, date } = connection;
 
-  const typeColor = {
-    MySQL: "bg-teal-100 text-teal-600",
-    SQLite: "bg-blue-100 text-blue-600",
-    Excel: "bg-green-100 text-green-600",
-    CSV: "bg-indigo-100 text-indigo-600",
+  const getTypeColor = (type: string): string => {
+    const colors = {
+      mysql: "bg-teal-100 text-teal-600",
+      sqlite: "bg-blue-100 text-blue-600",
+      excel: "bg-green-100 text-green-600",
+      csv: "bg-indigo-100 text-indigo-600",
+    };
+    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-600";
   };
 
   return (
-    <div className={`flex items-center justify-between ${active ? "active-box" : "normal-box"}`} onClick={onClick}>
+    <div
+      className={`flex items-center justify-between ${
+        active ? "active-box" : "normal-box"
+      }`}
+      onClick={onClick}
+    >
       <div>
         <h3 className="text-sm font-medium">{name}</h3>
         {host && (
@@ -33,7 +41,7 @@ export const SavedConnectionCard: React.FC<Props> = ({
         {file && <p className="text-xs text-gray-500">{file}</p>}
         <p className="text-xs text-gray-400">{date}</p>
       </div>
-      <div className={`text-xs px-3 py-1 rounded ${typeColor[type]}`}>
+      <div className={`text-xs px-3 py-1 rounded ${getTypeColor(type)}`}>
         {type}
       </div>
     </div>
