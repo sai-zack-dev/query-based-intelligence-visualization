@@ -7,7 +7,7 @@ export const CONNECTIONS: ConnectionData[] = [
   {
     id: "1",
     name: "Sales DB",
-    type: "MySQL",
+    type: "mysql",
     host: "localhost",
     port: 3306,
     file: null,
@@ -16,7 +16,7 @@ export const CONNECTIONS: ConnectionData[] = [
   {
     id: "2",
     name: "Warehouse Data",
-    type: "SQLite",
+    type: "sqlite",
     host: null,
     port: null,
     file: "warehouse.db",
@@ -25,7 +25,7 @@ export const CONNECTIONS: ConnectionData[] = [
   {
     id: "3",
     name: "Marketing Campaign",
-    type: "Excel",
+    type: "excel",
     host: null,
     port: null,
     file: "marketing_campaign.xlsx",
@@ -34,7 +34,7 @@ export const CONNECTIONS: ConnectionData[] = [
   {
     id: "4",
     name: "Marketing Campaign CSV",
-    type: "CSV",
+    type: "csv",
     host: null,
     port: null,
     file: "marketing_campaign.csv",
@@ -45,7 +45,7 @@ export const CONNECTIONS: ConnectionData[] = [
 export const CURRENT_CONNECTION: ConnectionData = {
   id: "mock-1",
   name: "MySQL Database",
-  type: "MySQL",
+  type: "mysql",
   host: "localhost",
   port: 3306,
   file: null,

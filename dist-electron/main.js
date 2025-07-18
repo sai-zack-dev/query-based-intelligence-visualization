@@ -25814,6 +25814,7 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
+let activeConnection = null;
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -25869,6 +25870,26 @@ ipcMain.handle("save-connection", async (_, conn) => {
   } catch (err) {
     console.error("Failed to save connection:", err);
     return { success: false, message: err.message || "Unknown error" };
+  }
+});
+ipcMain.handle("connect-to-database", async (_, conn) => {
+  try {
+    if (activeConnection) {
+      await activeConnection.end();
+      activeConnection = null;
+    }
+    const connection2 = await mysql.createConnection({
+      host: conn.host,
+      port: parseInt(conn.port),
+      user: conn.username,
+      password: conn.password,
+      database: conn.database
+    });
+    activeConnection = connection2;
+    return { success: true };
+  } catch (err) {
+    console.error("Connection failed:", err);
+    return { success: false, message: err.message };
   }
 });
 ipcMain.handle("update-connection-by-name", async (_, conn) => {
@@ -25950,6 +25971,25 @@ ipcMain.handle("get-connections", () => {
   } catch (err) {
     console.error("Failed to get connections:", err);
     return { success: false, message: err.message || "Failed to retrieve connections" };
+  }
+});
+ipcMain.handle("disconnect-database", async () => {
+  try {
+    if (activeConnection) {
+      await activeConnection.end();
+      activeConnection = null;
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to disconnect:", err);
+    return { success: false, message: err.message };
+  }
+});
+ipcMain.handle("get-active-connection", () => {
+  if (activeConnection) {
+    return { connected: true };
+  } else {
+    return { connected: false };
   }
 });
 export {

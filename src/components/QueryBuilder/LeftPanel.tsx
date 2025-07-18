@@ -9,6 +9,8 @@ import DataExplorer from "./sidebar/DataExplorer";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
 import { CURRENT_CONNECTION, DATABASES } from "@/mock/MockData";
+import { useEffect } from "react";
+import { ConnectionData } from "@/types/connection";
 
 const sidebarTabs = [
   {
@@ -35,6 +37,20 @@ export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
   toggleSidebar,
 }) => {
+  const [connection, setConnection] = useState<ConnectionData | null>(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("activeConnection");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        setConnection(parsed);
+      } catch (err) {
+        console.error("Invalid connection data in localStorage:", err);
+      }
+    }
+  }, []);
+
   const sidebarClasses = `
     sidebar
     ${
@@ -70,7 +86,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
             )}
             {sidebarTab === "saved_query" && <SavedQuery />}
             {sidebarTab === "data_source" && (
-              <DataSource connection={CURRENT_CONNECTION} />
+              <DataSource connection={connection} />
             )}
           </>
         )}

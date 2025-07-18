@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { ConnectionData } from "@/types/connection";
 import { useNavigate } from "react-router-dom";
 
-export type DialogType = 
-  | "name-conflict" 
-  | "config-conflict" 
-  | "validation-error" 
+export type DialogType =
+  | "name-conflict"
+  | "config-conflict"
+  | "validation-error"
   | null;
 
 type DialogTrigger = (
@@ -110,7 +110,9 @@ export const useConnectionForm = (
       onDialogTrigger?.(
         "validation-error",
         "Missing Required Fields",
-        `Please fill in the following required fields: ${missingFields.join(", ")}`
+        `Please fill in the following required fields: ${missingFields.join(
+          ", "
+        )}`
       );
       return false;
     }
@@ -124,13 +126,16 @@ export const useConnectionForm = (
     resetStatus();
 
     try {
-      const response = await window.ipcRenderer.invoke("test-mysql-connection", {
-        host: formData.host,
-        port: formData.port,
-        username: formData.username,
-        password: formData.password,
-        database: formData.database,
-      });
+      const response = await window.ipcRenderer.invoke(
+        "test-mysql-connection",
+        {
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          database: formData.database,
+        }
+      );
 
       if (!response.success) {
         setStatus({
@@ -150,9 +155,25 @@ export const useConnectionForm = (
       });
 
       if (saveResponse.success) {
-        setStatus({ type: "success", message: "Connection saved!" });
+        const connectResponse = await window.ipcRenderer.invoke(
+          "connect-to-database",
+          {
+            host: formData.host,
+            port: formData.port,
+            username: formData.username,
+            password: formData.password, // you may need to store temporarily for this
+            database: formData.database,
+            name: formData.name,
+          }
+        );
+
+        if (!connectResponse.success) {
+          setStatus({ type: "error", message: connectResponse.message });
+          return;
+        }
+
+        setStatus({ type: "success", message: "Connected!" });
         setTimeout(() => navigate("/query"), 800);
-        return;
       }
 
       // Conflict resolution
@@ -183,26 +204,38 @@ export const useConnectionForm = (
           "A connection with the same host/port/username exists but with a different name. Do you want to update its name or create a new one?",
           async (action) => {
             if (action === "update") {
-              await window.ipcRenderer.invoke("update-connection-name-by-config", {
-                name: formData.name,
-                host: formData.host,
-                port: formData.port,
-                username: formData.username,
+              await window.ipcRenderer.invoke(
+                "update-connection-name-by-config",
+                {
+                  name: formData.name,
+                  host: formData.host,
+                  port: formData.port,
+                  username: formData.username,
+                }
+              );
+              setStatus({
+                type: "success",
+                message: "Connection name updated!",
               });
-              setStatus({ type: "success", message: "Connection name updated!" });
               setTimeout(() => navigate("/query"), 800);
             } else if (action === "create") {
-              const forceResponse = await window.ipcRenderer.invoke("force-create-connection", {
-                name: formData.name,
-                type: connectionType,
-                host: formData.host,
-                port: formData.port,
-                username: formData.username,
-                database: formData.database,
-              });
+              const forceResponse = await window.ipcRenderer.invoke(
+                "force-create-connection",
+                {
+                  name: formData.name,
+                  type: connectionType,
+                  host: formData.host,
+                  port: formData.port,
+                  username: formData.username,
+                  database: formData.database,
+                }
+              );
 
               if (forceResponse.success) {
-                setStatus({ type: "success", message: "New connection created!" });
+                setStatus({
+                  type: "success",
+                  message: "New connection created!",
+                });
                 setTimeout(() => navigate("/query"), 800);
               }
             }
