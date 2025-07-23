@@ -25796,6 +25796,8 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
+let activeConnection = null;
+let activeConnectionMeta = null;
 function createWindow() {
   win = new BrowserWindow({
     minWidth: 700,
@@ -25814,7 +25816,6 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
-let activeConnection = null;
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -25859,7 +25860,11 @@ ipcMain.handle("save-connection", async (_, conn) => {
       };
     }
     const nameMatch = findConnectionByName(conn.name);
-    const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
+    const configMatch = findConnectionByConfig(
+      conn.host,
+      conn.port,
+      conn.username
+    );
     if (nameMatch) {
       return { conflict: "name", existing: nameMatch };
     } else if (configMatch) {
@@ -25870,26 +25875,6 @@ ipcMain.handle("save-connection", async (_, conn) => {
   } catch (err) {
     console.error("Failed to save connection:", err);
     return { success: false, message: err.message || "Unknown error" };
-  }
-});
-ipcMain.handle("connect-to-database", async (_, conn) => {
-  try {
-    if (activeConnection) {
-      await activeConnection.end();
-      activeConnection = null;
-    }
-    const connection2 = await mysql.createConnection({
-      host: conn.host,
-      port: parseInt(conn.port),
-      user: conn.username,
-      password: conn.password,
-      database: conn.database
-    });
-    activeConnection = connection2;
-    return { success: true };
-  } catch (err) {
-    console.error("Connection failed:", err);
-    return { success: false, message: err.message };
   }
 });
 ipcMain.handle("update-connection-by-name", async (_, conn) => {
@@ -25927,7 +25912,12 @@ ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
         missingFields
       };
     }
-    updateConnectionNameByConfig(payload.name, payload.host, payload.port, payload.username);
+    updateConnectionNameByConfig(
+      payload.name,
+      payload.host,
+      payload.port,
+      payload.username
+    );
     return { success: true };
   } catch (err) {
     console.error("Failed to update connection name:", err);
@@ -25970,7 +25960,10 @@ ipcMain.handle("get-connections", () => {
     return getAllConnections();
   } catch (err) {
     console.error("Failed to get connections:", err);
-    return { success: false, message: err.message || "Failed to retrieve connections" };
+    return {
+      success: false,
+      message: err.message || "Failed to retrieve connections"
+    };
   }
 });
 ipcMain.handle("disconnect-database", async () => {
@@ -25985,11 +25978,77 @@ ipcMain.handle("disconnect-database", async () => {
     return { success: false, message: err.message };
   }
 });
-ipcMain.handle("get-active-connection", () => {
-  if (activeConnection) {
-    return { connected: true };
-  } else {
-    return { connected: false };
+ipcMain.handle("connect-to-database", async (_, conn) => {
+  try {
+    if (activeConnection) {
+      await activeConnection.end();
+      activeConnection = null;
+      activeConnectionMeta = null;
+    }
+    const connection2 = await mysql.createConnection({
+      host: conn.host,
+      port: parseInt(conn.port),
+      user: conn.username,
+      password: conn.password,
+      database: conn.database
+    });
+    activeConnection = connection2;
+    activeConnectionMeta = {
+      id: Date.now(),
+      // or conn.id
+      name: conn.name ?? "Untitled",
+      type: "mysql",
+      host: conn.host ?? null,
+      port: conn.port ? parseInt(conn.port) : null,
+      file: null,
+      date: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    console.log("✅ activeConnectionMeta SET:", activeConnectionMeta);
+    return { success: true };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+ipcMain.handle("get-active-connection-meta", async () => {
+  if (activeConnectionMeta) {
+    return { success: true, meta: activeConnectionMeta };
+  }
+  return { success: false, message: "No active connection" };
+});
+ipcMain.handle("get-database-explorer-data", async () => {
+  if (!activeConnection) {
+    return { success: false, message: "No active connection" };
+  }
+  try {
+    const [dbRows] = await activeConnection.query(
+      "SHOW DATABASES"
+    );
+    const databases = dbRows.map((row) => row.Database);
+    const dbData = {};
+    for (const db2 of databases) {
+      await activeConnection.query(`USE \`${db2}\``);
+      const [tableRows] = await activeConnection.query(
+        "SHOW TABLES"
+      );
+      const tableNames = tableRows.map(
+        (t) => Object.values(t)[0]
+      );
+      const tableSchemas = {};
+      for (const table of tableNames) {
+        const [columns] = await activeConnection.query(
+          `DESCRIBE \`${table}\``
+        );
+        tableSchemas[table] = columns;
+      }
+      dbData[db2] = {
+        tables: tableNames,
+        schema: tableSchemas
+      };
+    }
+    return { success: true, explorer: dbData };
+  } catch (err) {
+    console.error("Explorer error:", err);
+    return { success: false, message: err.message };
   }
 });
 export {

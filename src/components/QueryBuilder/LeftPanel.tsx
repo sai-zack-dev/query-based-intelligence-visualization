@@ -6,11 +6,10 @@ import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
 import SidebarTab from "@/components/common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
+import { ConnectionData, ConnectionType } from "@/types/connection";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
-import { CURRENT_CONNECTION, DATABASES } from "@/mock/MockData";
-import { useEffect } from "react";
-import { ConnectionData } from "@/types/connection";
+import { ConnectionMeta, ExplorerData } from "@/types/querybuilder"; // Add this file if missing
 
 const sidebarTabs = [
   {
@@ -33,23 +32,20 @@ const sidebarTabs = [
   },
 ];
 
-export const LeftPanel: React.FC<SidebarData> = ({
+interface LeftPanelProps extends SidebarData {
+  connectionMeta: ConnectionMeta | null;
+  explorerData: ExplorerData | null;
+}
+
+export const LeftPanel: React.FC<LeftPanelProps> = ({
   sidebarActive,
   toggleSidebar,
+  connectionMeta,
+  explorerData,
 }) => {
-  const [connection, setConnection] = useState<ConnectionData | null>(null);
-
-  useEffect(() => {
-    const raw = localStorage.getItem("activeConnection");
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        setConnection(parsed);
-      } catch (err) {
-        console.error("Invalid connection data in localStorage:", err);
-      }
-    }
-  }, []);
+  const [sidebarTab, setSidebarTab] = useState<
+    "data_exp" | "saved_query" | "data_source"
+  >("data_exp");
 
   const sidebarClasses = `
     sidebar
@@ -69,24 +65,29 @@ export const LeftPanel: React.FC<SidebarData> = ({
     }
   `.trim();
 
-  const [sidebarTab, setSidebarTab] = useState<
-    "data_exp" | "saved_query" | "data_source"
-  >("data_exp");
-
   return (
     <>
       {/* Sidebar Panel */}
       <div className={sidebarClasses}>
-        {/* Header */}
+        {/* Sidebar Content */}
         {sidebarActive && (
           <>
-            {/* Sidebar Content */}
-            {sidebarTab === "data_exp" && (
-              <DataExplorer databases={DATABASES} />
-            )}
+            {/* {sidebarTab === "data_exp" && explorerData && (
+              <DataExplorer databases={explorerData} />
+            )} */}
             {sidebarTab === "saved_query" && <SavedQuery />}
-            {sidebarTab === "data_source" && (
-              <DataSource connection={connection} />
+            {sidebarTab === "data_source" && connectionMeta && (
+              <DataSource
+                connection={{
+                  id: Date.now(), // or hardcoded "temp" if you want
+                  name: connectionMeta.name ?? "Unnamed",
+                  type: connectionMeta.type as ConnectionType,
+                  host: connectionMeta.host ?? null,
+                  port: 3306, // or null if unknown
+                  file: null,
+                  date: connectionMeta.lastUpdate,
+                }}
+              />
             )}
           </>
         )}

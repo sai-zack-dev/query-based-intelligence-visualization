@@ -5,7 +5,7 @@ export interface ConnectionData {
   host: string | null;
   port: number | null;
   file: string | null;
-  date: string;
+  date: string | null;
 }
 
 export interface FormData {

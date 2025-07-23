@@ -14,19 +14,21 @@ const typeColor: Record<string, string> = {
 };
 
 const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
-  // Handle null connection case
+  // 🟥 No connection fallback
   if (!connection) {
     return (
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
-        <h2 className="font-semibold text-gray-800">Data Source</h2>
-      </div>
+          <h2 className="font-semibold text-gray-800">Data Source</h2>
+        </div>
 
         {/* No Connection State */}
         <div className="pl-6">
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500 mb-4">No data source connected</p>
+            <p className="text-sm text-gray-500 mb-4">
+              No data source connected
+            </p>
             <Link to="/">
               <button className="btn-outline text-xs">
                 Connect Data Source
@@ -38,7 +40,15 @@ const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
     );
   }
 
-  const { name, type, host, port, file, date } = connection;
+  // ✅ Destructure and provide fallback for nullables
+  const {
+    name = "Unnamed Connection",
+    type,
+    host,
+    port,
+    file,
+    date,
+  } = connection;
 
   return (
     <div className="px-4 py-3">
@@ -51,21 +61,31 @@ const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
       <div className="pl-6">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-sm font-medium text-gray-800">
-              {name || "Unnamed Connection"}
-            </h3>
-            {host && port && (
-              <p className="text-xs text-gray-500">{host}:{port}</p>
+            <h3 className="text-sm font-medium text-gray-800">{name}</h3>
+
+            {/* Connection location */}
+            {host && port !== null && (
+              <p className="text-xs text-gray-500">
+                {host}:{port}
+              </p>
             )}
+
+            {/* File path for local sources */}
             {file && (
-              <p className="text-xs text-gray-500">{file}</p>
+              <p className="text-xs text-gray-500 truncate max-w-[260px]">
+                {file}
+              </p>
             )}
+
+            {/* Connection date */}
             {date && (
-              <p className="text-xs text-gray-400">{date}</p>
+              <p className="text-xs text-gray-400">
+                Connected on {new Date(date).toLocaleString()}
+              </p>
             )}
           </div>
 
-          {/* Tag */}
+          {/* Type Tag */}
           <div
             className={`text-xs px-3 py-1 rounded ${
               typeColor[type?.toLowerCase()] || "bg-gray-100 text-gray-600"
