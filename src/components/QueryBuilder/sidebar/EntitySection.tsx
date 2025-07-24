@@ -1,38 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { EntityField } from "@/types/database"
-import { ENTITIES } from "@/mock/MockData";
+import { useActiveConnection } from "@/hooks/useActiveConnection";
 
-const EntitySection = () => {
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
-    customers: true,
-    orders: false,
-    products: false,
-  });
+interface EntitySectionProps {
+  selectedDatabase: string | null;
+}
 
-  const toggleSection = (section: string) => {
+const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
+  const { fetchTables, fetchSchema, tables, schema, loading, error } =
+    useActiveConnection();
+
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (selectedDatabase) {
+      fetchTables(selectedDatabase);
+      setExpandedSections({});
+    }
+  }, [selectedDatabase]);
+
+  const toggleSection = async (tableName: string) => {
     setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section],
+      [tableName]: !prev[tableName],
     }));
+
+    if (!schema?.[selectedDatabase!]?.[tableName]) {
+      await fetchSchema(selectedDatabase!, tableName);
+    }
   };
 
-  interface SectionHeaderProps {
+  const SectionHeader: React.FC<{
     title: string;
     isExpanded: boolean;
     onToggle: () => void;
-  }
-
-  const SectionHeader: React.FC<SectionHeaderProps> = ({
-    title,
-    isExpanded,
-    onToggle,
-  }) => (
+  }> = ({ title, isExpanded, onToggle }) => (
     <div
       className={`flex items-center cursor-pointer p-2 gap- hover:bg-blue-50 select-none text-blue-500 border-y border-blue-50 ${
-        isExpanded ? "bg-blue-50" : "bg-white"}`}
+        isExpanded ? "bg-blue-50" : "bg-white"
+      }`}
       onClick={onToggle}
     >
       {isExpanded ? (
@@ -44,41 +50,42 @@ const EntitySection = () => {
     </div>
   );
 
-  const FieldItem: React.FC<{ field: EntityField }> = ({ field }) => (
+  const FieldItem: React.FC<{ field: any }> = ({ field }) => (
     <div className="flex py-1 px-3 justify-between items-center hover:bg-blue-50">
-      <span className="text-gray-700 text-sm">{field.name}</span>
-      <span className="text-gray-500 text-xs">{field.type}</span>
+      <span className="text-gray-700 text-sm">{field.Field}</span>
+      <span className="text-gray-500 text-xs">{field.Type}</span>
     </div>
   );
 
   return (
     <div className="mt-3">
-      <h3 className="input-label">Entities (3)</h3>
+      <h3 className="input-label">
+        {selectedDatabase ? `Tables (${tables.length})` : "Tables"}
+      </h3>
 
-      <div className="rounded-lg border border-blue-300 overflow-hidden">
-        {Object.entries(ENTITIES).map(([entityName, fields]) => (
-          <div key={entityName}>
-            <SectionHeader
-              title={entityName.charAt(0).toUpperCase() + entityName.slice(1)}
-              isExpanded={expandedSections[entityName]}
-              onToggle={() => toggleSection(entityName)}
-            />
-            {expandedSections[entityName] && (
-              <div>
-                {fields.length > 0 ? (
-                  fields.map((field, index) => (
-                    <FieldItem key={index} field={field} />
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm pl-6 py-1">
-                    No fields defined
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {loading.tables ? (
+        <p className="text-xs text-gray-500 mt-1">Loading tables…</p>
+      ) : error ? (
+        <p className="text-xs text-red-500 mt-1">Error: {error}</p>
+      ) : tables.length === 0 ? (
+        <p className="text-xs text-gray-500 mt-1">No tables found.</p>
+      ) : (
+        <div className="rounded-lg border border-blue-300 overflow-hidden">
+          {tables.map((tableName) => (
+            <div key={tableName}>
+              <SectionHeader
+                title={tableName}
+                isExpanded={!!expandedSections[tableName]}
+                onToggle={() => toggleSection(tableName)}
+              />
+              {expandedSections[tableName] &&
+                schema?.[selectedDatabase!]?.[tableName]?.map((field) => (
+                  <FieldItem key={field.Field} field={field} />
+                ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -9,7 +9,6 @@ import DataExplorer from "./sidebar/DataExplorer";
 import { ConnectionData, ConnectionType } from "@/types/connection";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
-import { ConnectionMeta, ExplorerData } from "@/types/querybuilder"; // Add this file if missing
 
 const sidebarTabs = [
   {
@@ -32,16 +31,9 @@ const sidebarTabs = [
   },
 ];
 
-interface LeftPanelProps extends SidebarData {
-  connectionMeta: ConnectionMeta | null;
-  explorerData: ExplorerData | null;
-}
-
-export const LeftPanel: React.FC<LeftPanelProps> = ({
+export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
   toggleSidebar,
-  connectionMeta,
-  explorerData,
 }) => {
   const [sidebarTab, setSidebarTab] = useState<
     "data_exp" | "saved_query" | "data_source"
@@ -72,23 +64,9 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
         {/* Sidebar Content */}
         {sidebarActive && (
           <>
-            {/* {sidebarTab === "data_exp" && explorerData && (
-              <DataExplorer databases={explorerData} />
-            )} */}
+            {sidebarTab === "data_exp" && <DataExplorer />}
             {sidebarTab === "saved_query" && <SavedQuery />}
-            {sidebarTab === "data_source" && connectionMeta && (
-              <DataSource
-                connection={{
-                  id: Date.now(), // or hardcoded "temp" if you want
-                  name: connectionMeta.name ?? "Unnamed",
-                  type: connectionMeta.type as ConnectionType,
-                  host: connectionMeta.host ?? null,
-                  port: 3306, // or null if unknown
-                  file: null,
-                  date: connectionMeta.lastUpdate,
-                }}
-              />
-            )}
+            {sidebarTab === "data_source" && <DataSource />}
           </>
         )}
       </div>

@@ -1,10 +1,7 @@
-import React from "react";
-import { ConnectionData } from "@/types/connection";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-
-type DataSourceProps = {
-  connection: ConnectionData | null;
-};
+import { useActiveConnection } from "@/hooks/useActiveConnection";
+import { ConnectionType } from "@/types/connection";
 
 const typeColor: Record<string, string> = {
   mysql: "bg-teal-100 text-teal-600",
@@ -13,9 +10,27 @@ const typeColor: Record<string, string> = {
   csv: "bg-indigo-100 text-indigo-600",
 };
 
-const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
+const DataSource: React.FC = () => {
+  const { meta, loading, error, fetchMeta } = useActiveConnection();
+
+  useEffect(() => {
+    fetchMeta();
+  }, []);
+
   // 🟥 No connection fallback
-  if (!connection) {
+  if (loading.meta) {
+    return (
+      <div className="pl-6 py-6 text-sm text-gray-500">Loading...</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pl-6 py-6 text-sm text-red-500">Error: {error}</div>
+    );
+  }
+
+  if (!meta) {
     return (
       <div>
         {/* Header */}
@@ -47,8 +62,8 @@ const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
     host,
     port,
     file,
-    date,
-  } = connection;
+    lastUpdate,
+  } = meta;
 
   return (
     <div className="px-4 py-3">
@@ -78,9 +93,9 @@ const DataSource: React.FC<DataSourceProps> = ({ connection }) => {
             )}
 
             {/* Connection date */}
-            {date && (
+            {lastUpdate && (
               <p className="text-xs text-gray-400">
-                Connected on {new Date(date).toLocaleString()}
+                Connected on {new Date(lastUpdate).toLocaleString()}
               </p>
             )}
           </div>
