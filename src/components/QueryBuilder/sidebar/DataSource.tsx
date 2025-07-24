@@ -66,14 +66,14 @@ const DataSource: React.FC = () => {
   } = meta;
 
   return (
-    <div className="px-4 py-3">
+    <div className="">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
         <h2 className="font-semibold text-gray-800">Data Source</h2>
       </div>
 
       {/* Info Section */}
-      <div className="pl-6">
+      <div className="pl-10">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-sm font-medium text-gray-800">{name}</h3>

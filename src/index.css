@@ -37,7 +37,7 @@
   }
 
   .sidebar-toggle {
-    @apply absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:flex left-0 h-10 w-10 items-center justify-center;
+    @apply absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:flex left-0 h-10 w-10 items-center justify-center cursor-pointer;
   }
 
   .bubble-wrap {

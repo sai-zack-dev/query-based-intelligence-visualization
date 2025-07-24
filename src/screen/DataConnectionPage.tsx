@@ -5,13 +5,9 @@ import { ConnectionDialog } from "@/components/common/ConnectionDialog";
 import { useSavedConnections } from "@/hooks/useSavedConnections";
 import { ConnectionData } from "@/types/connection";
 import { DialogType } from "@/hooks/useConnectionForm";
+import { SidebarData } from "@/types/sidebar";
 
-interface Props {
-  sidebarActive?: boolean;
-  toggleSidebar?: () => void;
-}
-
-const DataConnectionPage: React.FC<Props> = ({
+const DataConnectionPage: React.FC<SidebarData> = ({
   sidebarActive = true,
   toggleSidebar = () => {},
 }) => {
