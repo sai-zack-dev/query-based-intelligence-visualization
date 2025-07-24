@@ -20,7 +20,6 @@ export default function ChartCategories({
         aria-label="Chart categories"
       >
         {chartMeta.map((cat) => {
-          const Icon = cat.categoryIcon;
           const isActive = activeCategoryId === cat.categoryId;
 
           return (

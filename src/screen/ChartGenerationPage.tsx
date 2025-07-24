@@ -12,6 +12,7 @@ const ChartGenerationPage: React.FC<SidebarData> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<ChartTab>("type");
   const [activeCategoryId, setActiveCategoryId] = useState<string>("basic");
+  const [chartType, setChartType] = useState<string>("");
 
   return (
     <>
@@ -22,10 +23,14 @@ const ChartGenerationPage: React.FC<SidebarData> = ({
         setActiveTab={setActiveTab}
         activeCategoryId={activeCategoryId}
         setActiveCategoryId={setActiveCategoryId}
+        chartType={chartType}
       />
       <MainContent
         activeTab={activeTab}
+        setActiveTab={setActiveTab}
         setActiveCategoryId={setActiveCategoryId}
+        chartType={chartType}
+        setChartType={setChartType}
       />
     </>
   );

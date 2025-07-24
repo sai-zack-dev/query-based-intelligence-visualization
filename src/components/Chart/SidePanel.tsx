@@ -25,6 +25,7 @@ interface Prop extends SidebarData {
   setActiveTab: React.Dispatch<React.SetStateAction<ChartTab>>;
   activeCategoryId: string;
   setActiveCategoryId: (id: string) => void;
+  chartType: string;
 }
 
 const SidePanel: React.FC<Prop> = ({
@@ -34,6 +35,7 @@ const SidePanel: React.FC<Prop> = ({
   setActiveTab,
   activeCategoryId,
   setActiveCategoryId,
+  chartType
 }) => {
   const sidebarTabs = [
     {
@@ -70,6 +72,8 @@ const SidePanel: React.FC<Prop> = ({
     }
   `.trim();
 
+  const isDisabled = chartType === "";
+
   return (
     <>
       {/* Sidebar Panel */}
@@ -105,6 +109,7 @@ const SidePanel: React.FC<Prop> = ({
             onSelect={(tabId: string) =>
               setActiveTab(tabId as "type" | "config" | "info")
             }
+            isDisabled={isDisabled}
           />
         ))}
       </div>

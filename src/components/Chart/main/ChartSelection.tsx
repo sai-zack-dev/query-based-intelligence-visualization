@@ -1,11 +1,20 @@
 import { chartMeta } from "@/data/chartMeta";
+import { ChartTab } from "@/screen/ChartGenerationPage";
 import { useEffect, useRef } from "react";
 
 interface Props {
   setActiveCategoryId: (id: string) => void;
+  chartType: string;
+  setChartType: (chartType: string) => void;
+  setActiveTab: React.Dispatch<React.SetStateAction<ChartTab>>;
 }
 
-const ChartSelection: React.FC<Props> = ({ setActiveCategoryId }) => {
+const ChartSelection: React.FC<Props> = ({
+  setActiveCategoryId,
+  chartType,
+  setChartType,
+  setActiveTab
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -36,12 +45,14 @@ const ChartSelection: React.FC<Props> = ({ setActiveCategoryId }) => {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
-        <h2 className="font-semibold text-gray-800">Chart Selection</h2>
+      <div className="px-4">
+        <h2 className="border-b pb-3 border-gray-200 font-semibold text-gray-800">
+          Chart Selection
+        </h2>
       </div>
       <div
         ref={containerRef}
-        className="space-y-10 pr-4 h-[80vh] overflow-auto"
+        className="space-y-10 p-4 pb-0 h-[75vh] overflow-auto"
       >
         {chartMeta.map((category) => (
           <section
@@ -57,7 +68,15 @@ const ChartSelection: React.FC<Props> = ({ setActiveCategoryId }) => {
               {category.charts.map(({ id, name, Component }) => (
                 <div
                   key={id}
-                  className="border rounded-lg hover:shadow-md cursor-pointer transition p-3 bg-white"
+                  className={`border rounded-lg hover:shadow-md cursor-pointer transition p-3 ${
+                    chartType === name
+                      ? "bg-blue-50 border-blue-300"
+                      : "bg-white"
+                  }`}
+                  onClick={() => {
+                    setChartType(name);
+                    setActiveTab("config")
+                  }}
                 >
                   <div className="h-40">
                     <Component />
