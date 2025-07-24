@@ -1,15 +1,33 @@
-import { Navbar } from "@/components/common/Navbar";
+// ChartGenerationPage.tsx
+import { useState } from "react";
+import SidePanel from "@/components/Chart/SidePanel";
+import MainContent from "@/components/Chart/MainContent";
+import { SidebarData } from "@/types/sidebar";
 
-const ChartGenerationPage = () => {
+export type ChartTab = "type" | "config" | "info";
+
+const ChartGenerationPage: React.FC<SidebarData> = ({
+  sidebarActive,
+  toggleSidebar,
+}) => {
+  const [activeTab, setActiveTab] = useState<ChartTab>("type");
+  const [activeCategoryId, setActiveCategoryId] = useState<string>("basic");
+
   return (
-    <div className="bg">
-      <Navbar />
-      <div className="pt-24 px-6">
-        <div className="text-center text-xl text-gray-600 font-semibold">
-          📊 Chart Generation UI Coming Soon...
-        </div>
-      </div>
-    </div>
+    <>
+      <SidePanel
+        sidebarActive={sidebarActive}
+        toggleSidebar={toggleSidebar}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        activeCategoryId={activeCategoryId}
+        setActiveCategoryId={setActiveCategoryId}
+      />
+      <MainContent
+        activeTab={activeTab}
+        setActiveCategoryId={setActiveCategoryId}
+      />
+    </>
   );
 };
 
