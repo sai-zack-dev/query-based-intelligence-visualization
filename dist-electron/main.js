@@ -1,4 +1,7 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key2, value) => key2 in obj ? __defProp(obj, key2, { enumerable: true, configurable: true, writable: true, value }) : obj[key2] = value;
+var __publicField = (obj, key2, value) => __defNormalProp(obj, typeof key2 !== "symbol" ? key2 + "" : key2, value);
+import { BrowserWindow, app, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import require$$0$4 from "events";
@@ -14,6 +17,35 @@ import require$$0$5 from "zlib";
 import require$$1$3 from "util";
 import require$$0$6 from "url";
 import Database from "better-sqlite3";
+function setupErrorHandlers() {
+  process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+  });
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled Rejection:", reason);
+  });
+}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname$1 = path.dirname(__filename);
+function createMainWindow() {
+  const win = new BrowserWindow({
+    minWidth: 700,
+    minHeight: 300,
+    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    webPreferences: {
+      preload: path.join(__dirname$1, "preload.mjs")
+    }
+  });
+  win.webContents.on("did-finish-load", () => {
+    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+  return win;
+}
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -25720,6 +25752,111 @@ var pool_cluster = PromisePoolNamespace;
   };
 })(promise);
 const mysql = /* @__PURE__ */ getDefaultExportFromCjs(promise);
+class ConnectionManager {
+  constructor() {
+    __publicField(this, "activeConnection", null);
+    __publicField(this, "activeConnectionMeta", null);
+  }
+  async testConnection(config) {
+    const { host, port, username, password, database } = config;
+    try {
+      const connection2 = await mysql.createConnection({
+        host,
+        port: Number(port),
+        user: username,
+        password,
+        database
+      });
+      await connection2.connect();
+      await connection2.end();
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }
+  async connectToDatabase(conn) {
+    try {
+      if (this.activeConnection) {
+        await this.activeConnection.end();
+        this.activeConnection = null;
+        this.activeConnectionMeta = null;
+      }
+      const connection2 = await mysql.createConnection({
+        host: conn.host,
+        port: parseInt(conn.port),
+        user: conn.username,
+        password: conn.password,
+        database: conn.database
+      });
+      this.activeConnection = connection2;
+      this.activeConnectionMeta = {
+        id: Date.now(),
+        name: conn.name ?? "Untitled",
+        type: "mysql",
+        host: conn.host ?? null,
+        port: conn.port ? parseInt(conn.port) : null,
+        file: null,
+        date: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }
+  async disconnect() {
+    try {
+      if (this.activeConnection) {
+        await this.activeConnection.end();
+        this.activeConnection = null;
+        this.activeConnectionMeta = null;
+      }
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to disconnect:", err);
+      return { success: false, message: err.message };
+    }
+  }
+  getActiveConnectionMeta() {
+    if (this.activeConnectionMeta) {
+      return { success: true, meta: this.activeConnectionMeta };
+    }
+    return { success: false, message: "No active connection" };
+  }
+  async getDatabaseExplorerData() {
+    if (!this.activeConnection) {
+      return { success: false, message: "No active connection" };
+    }
+    try {
+      const [dbRows] = await this.activeConnection.query("SHOW DATABASES");
+      const databases = dbRows.map((row) => row.Database);
+      const dbData = {};
+      for (const db2 of databases) {
+        await this.activeConnection.query(`USE \`${db2}\``);
+        const [tableRows] = await this.activeConnection.query("SHOW TABLES");
+        const tableNames = tableRows.map(
+          (t) => Object.values(t)[0]
+        );
+        const tableSchemas = {};
+        for (const table of tableNames) {
+          const [columns] = await this.activeConnection.query(
+            `DESCRIBE \`${table}\``
+          );
+          tableSchemas[table] = columns;
+        }
+        dbData[db2] = {
+          tables: tableNames,
+          schema: tableSchemas
+        };
+      }
+      return { success: true, explorer: dbData };
+    } catch (err) {
+      console.error("Explorer error:", err);
+      return { success: false, message: err.message };
+    }
+  }
+}
+const connectionManager = new ConnectionManager();
 let db = null;
 function getDbPath() {
   if (!app.isReady()) {
@@ -25782,12 +25919,166 @@ function updateConnectionNameByConfig(name, host, port, username) {
     WHERE host = ? AND port = ? AND username = ?
   `).run(name, host, port, username);
 }
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-});
-process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled Rejection:", reason);
-});
+class ConnectionService {
+  validateConnection(conn) {
+    const missingFields = [];
+    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
+    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
+    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
+    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
+    return {
+      isValid: missingFields.length === 0,
+      missingFields: missingFields.length > 0 ? missingFields : void 0
+    };
+  }
+  async saveConnection(conn) {
+    try {
+      const validation = this.validateConnection(conn);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          missingFields: validation.missingFields
+        };
+      }
+      const nameMatch = findConnectionByName(conn.name);
+      const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
+      if (nameMatch) {
+        return { conflict: "name", existing: nameMatch };
+      } else if (configMatch) {
+        return { conflict: "config", existing: configMatch };
+      }
+      addConnection(conn);
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save connection:", err);
+      return { success: false, message: err.message || "Unknown error" };
+    }
+  }
+  async updateConnectionByName(conn) {
+    try {
+      const validation = this.validateConnection(conn);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          missingFields: validation.missingFields
+        };
+      }
+      updateConnectionByName(conn);
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to update connection:", err);
+      return { success: false, message: err.message || "Update failed" };
+    }
+  }
+  async updateConnectionNameByConfig(payload) {
+    try {
+      const validation = this.validateConnection(payload);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          missingFields: validation.missingFields
+        };
+      }
+      updateConnectionNameByConfig(
+        payload.name,
+        payload.host,
+        payload.port,
+        payload.username
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to update connection name:", err);
+      return { success: false, message: err.message || "Rename failed" };
+    }
+  }
+  async forceCreateConnection(conn) {
+    try {
+      const validation = this.validateConnection(conn);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          missingFields: validation.missingFields
+        };
+      }
+      let uniqueName = conn.name;
+      let counter = 1;
+      while (findConnectionByName(uniqueName)) {
+        uniqueName = `${conn.name}_${counter}`;
+        counter++;
+      }
+      const connectionWithUniqueName = {
+        ...conn,
+        name: uniqueName
+      };
+      addConnection(connectionWithUniqueName);
+      return { success: true, savedName: uniqueName };
+    } catch (err) {
+      console.error("Failed to force create connection:", err);
+      return { success: false, message: err.message || "Unknown error" };
+    }
+  }
+  getConnections() {
+    try {
+      return getAllConnections();
+    } catch (err) {
+      console.error("Failed to get connections:", err);
+      return {
+        success: false,
+        message: err.message || "Failed to retrieve connections"
+      };
+    }
+  }
+}
+const connectionService = new ConnectionService();
+function setupIpcHandlers() {
+  ipcMain.handle("test-mysql-connection", async (_, config) => {
+    return await connectionManager.testConnection(config);
+  });
+  ipcMain.handle("save-connection", async (_, conn) => {
+    return await connectionService.saveConnection(conn);
+  });
+  ipcMain.handle("update-connection-by-name", async (_, conn) => {
+    return await connectionService.updateConnectionByName(conn);
+  });
+  ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
+    return await connectionService.updateConnectionNameByConfig(payload);
+  });
+  ipcMain.handle("force-create-connection", async (_, conn) => {
+    return await connectionService.forceCreateConnection(conn);
+  });
+  ipcMain.handle("get-connections", () => {
+    return connectionService.getConnections();
+  });
+  ipcMain.handle("connect-to-database", async (_, conn) => {
+    return await connectionManager.connectToDatabase(conn);
+  });
+  ipcMain.handle("disconnect-database", async () => {
+    return await connectionManager.disconnect();
+  });
+  ipcMain.handle("get-active-connection-meta", async () => {
+    return connectionManager.getActiveConnectionMeta();
+  });
+  ipcMain.handle("get-database-explorer-data", async () => {
+    return await connectionManager.getDatabaseExplorerData();
+  });
+}
+function setupAppEvents(createWindowCallback) {
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  });
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindowCallback();
+    }
+  });
+}
+setupErrorHandlers();
 globalThis.__filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -25795,165 +26086,16 @@ const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
-function createWindow() {
-  win = new BrowserWindow({
-    minWidth: 700,
-    minHeight: 300,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      preload: path.join(__dirname, "preload.mjs")
-    }
-  });
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
-  }
+let mainWindow = null;
+function initializeApp() {
+  mainWindow = createMainWindow();
+  setupIpcHandlers();
+  setupAppEvents(() => createMainWindow());
 }
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-  }
-});
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-app.whenReady().then(createWindow);
-ipcMain.handle("test-mysql-connection", async (_, config) => {
-  const { host, port, username, password, database } = config;
-  try {
-    const connection2 = await mysql.createConnection({
-      host,
-      port: Number(port),
-      user: username,
-      password,
-      database
-    });
-    await connection2.connect();
-    await connection2.end();
-    return { success: true };
-  } catch (err) {
-    return { success: false, message: err.message };
-  }
-});
-ipcMain.handle("save-connection", async (_, conn) => {
-  try {
-    const missingFields = [];
-    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
-    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
-    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
-    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
-    if (missingFields.length > 0) {
-      return {
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-        missingFields
-      };
-    }
-    const nameMatch = findConnectionByName(conn.name);
-    const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
-    if (nameMatch) {
-      return { conflict: "name", existing: nameMatch };
-    } else if (configMatch) {
-      return { conflict: "config", existing: configMatch };
-    }
-    addConnection(conn);
-    return { success: true };
-  } catch (err) {
-    console.error("Failed to save connection:", err);
-    return { success: false, message: err.message || "Unknown error" };
-  }
-});
-ipcMain.handle("update-connection-by-name", async (_, conn) => {
-  try {
-    const missingFields = [];
-    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
-    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
-    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
-    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
-    if (missingFields.length > 0) {
-      return {
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-        missingFields
-      };
-    }
-    updateConnectionByName(conn);
-    return { success: true };
-  } catch (err) {
-    console.error("Failed to update connection:", err);
-    return { success: false, message: err.message || "Update failed" };
-  }
-});
-ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
-  try {
-    const missingFields = [];
-    if (!(payload == null ? void 0 : payload.name)) missingFields.push("Name");
-    if (!(payload == null ? void 0 : payload.host)) missingFields.push("Host");
-    if (!(payload == null ? void 0 : payload.port)) missingFields.push("Port");
-    if (!(payload == null ? void 0 : payload.username)) missingFields.push("Username");
-    if (missingFields.length > 0) {
-      return {
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-        missingFields
-      };
-    }
-    updateConnectionNameByConfig(payload.name, payload.host, payload.port, payload.username);
-    return { success: true };
-  } catch (err) {
-    console.error("Failed to update connection name:", err);
-    return { success: false, message: err.message || "Rename failed" };
-  }
-});
-ipcMain.handle("force-create-connection", async (_, conn) => {
-  try {
-    const missingFields = [];
-    if (!(conn == null ? void 0 : conn.name)) missingFields.push("Name");
-    if (!(conn == null ? void 0 : conn.host)) missingFields.push("Host");
-    if (!(conn == null ? void 0 : conn.port)) missingFields.push("Port");
-    if (!(conn == null ? void 0 : conn.username)) missingFields.push("Username");
-    if (missingFields.length > 0) {
-      return {
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-        missingFields
-      };
-    }
-    let uniqueName = conn.name;
-    let counter = 1;
-    while (findConnectionByName(uniqueName)) {
-      uniqueName = `${conn.name}_${counter}`;
-      counter++;
-    }
-    const connectionWithUniqueName = {
-      ...conn,
-      name: uniqueName
-    };
-    addConnection(connectionWithUniqueName);
-    return { success: true, savedName: uniqueName };
-  } catch (err) {
-    console.error("Failed to force create connection:", err);
-    return { success: false, message: err.message || "Unknown error" };
-  }
-});
-ipcMain.handle("get-connections", () => {
-  try {
-    return getAllConnections();
-  } catch (err) {
-    console.error("Failed to get connections:", err);
-    return { success: false, message: err.message || "Failed to retrieve connections" };
-  }
-});
+app.whenReady().then(initializeApp);
 export {
   MAIN_DIST,
   RENDERER_DIST,
-  VITE_DEV_SERVER_URL
+  VITE_DEV_SERVER_URL,
+  mainWindow
 };

@@ -6,9 +6,9 @@ import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
 import SidebarTab from "@/components/common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
+import { ConnectionData, ConnectionType } from "@/types/connection";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
-import { CURRENT_CONNECTION, DATABASES } from "@/mock/MockData";
 
 const sidebarTabs = [
   {
@@ -35,6 +35,10 @@ export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
   toggleSidebar,
 }) => {
+  const [sidebarTab, setSidebarTab] = useState<
+    "data_exp" | "saved_query" | "data_source"
+  >("data_exp");
+
   const sidebarClasses = `
     sidebar
     ${
@@ -53,25 +57,16 @@ export const LeftPanel: React.FC<SidebarData> = ({
     }
   `.trim();
 
-  const [sidebarTab, setSidebarTab] = useState<
-    "data_exp" | "saved_query" | "data_source"
-  >("data_exp");
-
   return (
     <>
       {/* Sidebar Panel */}
       <div className={sidebarClasses}>
-        {/* Header */}
+        {/* Sidebar Content */}
         {sidebarActive && (
           <>
-            {/* Sidebar Content */}
-            {sidebarTab === "data_exp" && (
-              <DataExplorer databases={DATABASES} />
-            )}
+            {sidebarTab === "data_exp" && <DataExplorer />}
             {sidebarTab === "saved_query" && <SavedQuery />}
-            {sidebarTab === "data_source" && (
-              <DataSource connection={CURRENT_CONNECTION} />
-            )}
+            {sidebarTab === "data_source" && <DataSource />}
           </>
         )}
       </div>

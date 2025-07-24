@@ -2,10 +2,11 @@ import { useState } from "react";
 import TabSwitcher from "@/components/common/TabSwithcher";
 import { AiPanel } from "./main/AiPanel";
 import { ManualPanel } from "./main/ManualPanel";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 export const QueryTools = () => {
   const [activeTab, setActiveTab] = useState<"ai" | "manual">("manual");
-
+  const { selectedDatabase } = useQueryBuilderContext(); // ✅ reactive from context
   return (
     <div className="mr-6 p-4 pt-3 rounded-xl bg-white shadow flex-grow transition-all duration-300">
       {/* Header with tab switcher */}
@@ -20,15 +21,11 @@ export const QueryTools = () => {
           onTabChange={(tabId) => setActiveTab(tabId as "ai" | "manual")}
         />
       </div>
-
+      { selectedDatabase }
       {/* Render based on selected tab */}
-      {activeTab === "ai" && (
-        <AiPanel />
-      )}
+      {activeTab === "ai" && <AiPanel />}
 
-      {activeTab === "manual" && (
-        <ManualPanel />
-      )}
+      {activeTab === "manual" && <ManualPanel />}
     </div>
   );
 };

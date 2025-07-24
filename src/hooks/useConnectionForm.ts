@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { ConnectionData } from "@/types/connection";
 import { useNavigate } from "react-router-dom";
 
-export type DialogType = 
-  | "name-conflict" 
-  | "config-conflict" 
-  | "validation-error" 
+export type DialogType =
+  | "name-conflict"
+  | "config-conflict"
+  | "validation-error"
   | null;
 
 type DialogTrigger = (
@@ -110,7 +110,9 @@ export const useConnectionForm = (
       onDialogTrigger?.(
         "validation-error",
         "Missing Required Fields",
-        `Please fill in the following required fields: ${missingFields.join(", ")}`
+        `Please fill in the following required fields: ${missingFields.join(
+          ", "
+        )}`
       );
       return false;
     }
@@ -124,14 +126,29 @@ export const useConnectionForm = (
     resetStatus();
 
     try {
-      const response = await window.ipcRenderer.invoke("test-mysql-connection", {
+      const connectionPayload = {
         host: formData.host,
         port: formData.port,
         username: formData.username,
         password: formData.password,
         database: formData.database,
-      });
+        name: formData.name,
+      };
 
+      const savePayload = {
+        name: formData.name,
+        type: connectionType,
+        host: formData.host,
+        port: formData.port,
+        username: formData.username,
+        database: formData.database,
+      };
+
+      // 1. Test Connection
+      const response = await window.ipcRenderer.invoke(
+        "test-mysql-connection",
+        connectionPayload
+      );
       if (!response.success) {
         setStatus({
           type: "error",
@@ -140,22 +157,33 @@ export const useConnectionForm = (
         return;
       }
 
-      const saveResponse = await window.ipcRenderer.invoke("save-connection", {
-        name: formData.name,
-        type: connectionType,
-        host: formData.host,
-        port: formData.port,
-        username: formData.username,
-        database: formData.database,
-      });
+      // 2. Save Connection
+      const saveResponse = await window.ipcRenderer.invoke(
+        "save-connection",
+        savePayload
+      );
 
-      if (saveResponse.success) {
-        setStatus({ type: "success", message: "Connection saved!" });
+      const connectAndNavigate = async (successMessage: string) => {
+        const connectResponse = await window.ipcRenderer.invoke(
+          "connect-to-database",
+          connectionPayload
+        );
+        if (!connectResponse.success) {
+          setStatus({ type: "error", message: connectResponse.message });
+          return;
+        }
+
+        setStatus({ type: "success", message: successMessage });
         setTimeout(() => navigate("/query"), 800);
+      };
+
+      // 3. Default save success
+      if (saveResponse.success) {
+        await connectAndNavigate("Connected!");
         return;
       }
 
-      // Conflict resolution
+      // 4. Name conflict
       if (saveResponse.conflict === "name") {
         onDialogTrigger?.(
           "name-conflict",
@@ -163,47 +191,48 @@ export const useConnectionForm = (
           "A connection with this name already exists. Do you want to overwrite it?",
           async (action) => {
             if (action === "save") {
-              await window.ipcRenderer.invoke("update-connection-by-name", {
-                name: formData.name,
-                type: connectionType,
-                host: formData.host,
-                port: formData.port,
-                username: formData.username,
-                database: formData.database,
-              });
-              setStatus({ type: "success", message: "Connection updated!" });
-              setTimeout(() => navigate("/query"), 800);
+              await window.ipcRenderer.invoke(
+                "update-connection-by-name",
+                savePayload
+              );
+              await connectAndNavigate("Connection updated!");
             }
           }
         );
-      } else if (saveResponse.conflict === "config") {
+        return;
+      }
+
+      // 5. Config conflict
+      if (saveResponse.conflict === "config") {
         onDialogTrigger?.(
           "config-conflict",
           "Similar Connection Found",
           "A connection with the same host/port/username exists but with a different name. Do you want to update its name or create a new one?",
           async (action) => {
             if (action === "update") {
-              await window.ipcRenderer.invoke("update-connection-name-by-config", {
-                name: formData.name,
-                host: formData.host,
-                port: formData.port,
-                username: formData.username,
-              });
-              setStatus({ type: "success", message: "Connection name updated!" });
-              setTimeout(() => navigate("/query"), 800);
+              await window.ipcRenderer.invoke(
+                "update-connection-name-by-config",
+                {
+                  name: formData.name,
+                  host: formData.host,
+                  port: formData.port,
+                  username: formData.username,
+                }
+              );
+              await connectAndNavigate("Connection name updated!");
             } else if (action === "create") {
-              const forceResponse = await window.ipcRenderer.invoke("force-create-connection", {
-                name: formData.name,
-                type: connectionType,
-                host: formData.host,
-                port: formData.port,
-                username: formData.username,
-                database: formData.database,
-              });
-
+              const forceResponse = await window.ipcRenderer.invoke(
+                "force-create-connection",
+                savePayload
+              );
               if (forceResponse.success) {
-                setStatus({ type: "success", message: "New connection created!" });
-                setTimeout(() => navigate("/query"), 800);
+                await connectAndNavigate("New connection created!");
+              } else {
+                setStatus({
+                  type: "error",
+                  message:
+                    forceResponse.message || "Failed to create connection.",
+                });
               }
             }
           }
