@@ -47,4 +47,21 @@ export function setupIpcHandlers() {
   ipcMain.handle("get-database-explorer-data", async () => {
     return await connectionManager.getDatabaseExplorerData();
   });
+
+  ipcMain.handle(
+    "run-sql-query",
+    async (_, payload: { database: string; query: string }) => {
+      try {
+        const conn = connectionManager.getActiveConnection();
+        if (!conn) return { success: false, message: "No DB connected" };
+
+        await conn.query(`USE \`${payload.database}\``); // switch database
+        const [rows] = await conn.query(payload.query);
+        return { success: true, data: rows };
+      } catch (err: any) {
+        return { success: false, message: err.message };
+      }
+    }
+  );
+
 }
