@@ -12,3 +12,37 @@ export type ExplorerData = Record<
     schema: Record<string, any[]>;
   }
 >;
+
+// Type for SELECTed columns
+export type ColumnSelection = {
+  name: string;
+  func: "" | "COUNT" | "SUM" | "DATE_FORMAT";
+  alias: string;
+  format?: string; // only for DATE_FORMAT
+};
+
+// Type for JOINs
+export type JoinType = "JOIN" | "INNER JOIN" | "LEFT JOIN" | "RIGHT JOIN";
+
+export type Join = {
+  type: JoinType;
+  table: string;
+  on: {
+    left: string;
+    operator: "=" | ">" | "<" | ">=" | "<=" | "!=";
+    right: string;
+  };
+};
+
+// Type for WHERE Filters
+export type Filter = {
+  column: string;
+  operator: "=" | ">" | "<" | ">=" | "<=" | "!=" | "LIKE";
+  value: string;
+};
+
+// Type for ORDER BY
+export type OrderByItem = {
+  column: string;
+  direction: "ASC" | "DESC";
+};

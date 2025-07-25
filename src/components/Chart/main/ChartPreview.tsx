@@ -1,17 +1,38 @@
-// /components/Chart/ChartPreview.tsx
 import { useChart } from "@/context/ChartContext";
 import LineChartTemplate from "../template/LineChartTemplate";
+import { groupBy } from "lodash";
+import { useMemo } from "react";
 
 const ChartPreview: React.FC = () => {
-  const { chartType, lines } = useChart();
+  const { chartType, lines, resultData, xKey, yKey, seriesKey } = useChart();
 
-  const data = Array.from({ length: 6 }, (_, i) => ({
-    name: `P${i + 1}`,
-    uv: Math.floor(Math.random() * 400 + 100),
-    pv: Math.floor(Math.random() * 400 + 100),
-    amt: Math.floor(Math.random() * 400 + 100),
-    // You can expand this with more fields if needed
-  }));
+  // Generate chart data by grouping on xKey and seriesKey
+  const chartData = useMemo(() => {
+    if (!resultData || resultData.length === 0 || !xKey || !yKey || !seriesKey)
+      return [];
+
+    const grouped = groupBy(resultData, (item) => item[xKey]);
+
+    return Object.entries(grouped).map(([xVal, records]) => {
+      const row: Record<string, any> = { [xKey]: xVal };
+
+      for (const record of records) {
+        const seriesValue = record[seriesKey];
+        const yVal = parseFloat(record[yKey]);
+        if (seriesValue && !isNaN(yVal)) {
+          row[seriesValue] = yVal;
+        }
+      }
+
+      return row;
+    });
+  }, [resultData, xKey, yKey, seriesKey]);
+
+  // Filter visible lines
+  const activeLines = useMemo(
+    () => lines.filter((line) => line.active),
+    [lines]
+  );
 
   return (
     <>
@@ -23,8 +44,9 @@ const ChartPreview: React.FC = () => {
 
       <LineChartTemplate
         name={chartType}
-        data={data}
-        lines={lines} // pulled from context
+        data={chartData}
+        lines={activeLines}
+        xKey={xKey}
       />
 
       <h1 className="w-full text-center pb-5 text-sm text-muted-foreground">

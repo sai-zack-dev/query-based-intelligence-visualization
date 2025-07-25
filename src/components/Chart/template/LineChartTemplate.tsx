@@ -13,6 +13,7 @@ import {
 interface LineConfig {
   dataKey: string;
   stroke: string;
+  active: boolean; // ✅ Add visibility toggle
   strokeDasharray?: string;
   yAxisId?: "left" | "right";
 }
@@ -21,9 +22,10 @@ interface Props {
   name: ChartName;
   data: any[];
   lines: LineConfig[];
+  xKey: string;
 }
 
-const LineChartTemplate: React.FC<Props> = ({ name, data, lines }) => {
+const LineChartTemplate: React.FC<Props> = ({ name, data, lines, xKey }) => {
   return (
     <div className="h-100 p-3">
       <ResponsiveContainer width="100%" height="100%">
@@ -34,7 +36,7 @@ const LineChartTemplate: React.FC<Props> = ({ name, data, lines }) => {
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis dataKey={xKey} />
           <Tooltip />
           <Legend />
 
@@ -48,24 +50,26 @@ const LineChartTemplate: React.FC<Props> = ({ name, data, lines }) => {
             <YAxis />
           )}
 
-          {/* Render Lines Dynamically */}
-          {lines.map((line, index) => (
-            <Line
-              key={index}
-              type="monotone"
-              dataKey={line.dataKey}
-              stroke={line.stroke}
-              activeDot={
-                name === "SimpleLineChart" || name === "BiaxialLineChart"
-                  ? { r: 8 }
-                  : undefined
-              }
-              strokeDasharray={
-                name === "DashedLineChart" ? line.strokeDasharray : undefined
-              }
-              yAxisId={name === "BiaxialLineChart" ? line.yAxisId : undefined}
-            />
-          ))}
+          {/* ✅ Render Only Active Lines */}
+          {lines
+            .filter((line) => line.active)
+            .map((line, index) => (
+              <Line
+                key={line.dataKey}
+                type="monotone"
+                dataKey={line.dataKey}
+                stroke={line.stroke}
+                activeDot={
+                  name === "SimpleLineChart" || name === "BiaxialLineChart"
+                    ? { r: 8 }
+                    : undefined
+                }
+                strokeDasharray={
+                  name === "DashedLineChart" ? line.strokeDasharray : undefined
+                }
+                yAxisId={name === "BiaxialLineChart" ? line.yAxisId : undefined}
+              />
+            ))}
         </LineChart>
       </ResponsiveContainer>
     </div>
