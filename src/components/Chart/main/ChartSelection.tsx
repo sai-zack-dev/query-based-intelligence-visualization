@@ -1,20 +1,14 @@
 import { chartMeta } from "@/data/chartMeta";
-import { ChartTab } from "@/screen/ChartGenerationPage";
 import { useEffect, useRef } from "react";
+import { useChart } from "@/context/ChartContext";
 
-interface Props {
-  setActiveCategoryId: (id: string) => void;
-  chartType: string;
-  setChartType: (chartType: string) => void;
-  setActiveTab: React.Dispatch<React.SetStateAction<ChartTab>>;
-}
-
-const ChartSelection: React.FC<Props> = ({
-  setActiveCategoryId,
-  chartType,
-  setChartType,
-  setActiveTab
-}) => {
+const ChartSelection: React.FC = () => {
+  const {
+    setActiveCategoryId,
+    chartType,
+    setChartType,
+    setActiveTab
+  } = useChart();
   const containerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -65,23 +59,23 @@ const ChartSelection: React.FC<Props> = ({
               {category.categoryTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {category.charts.map(({ id, name, Component }) => (
+              {category.charts.map(({ id, title, Component }) => (
                 <div
                   key={id}
-                  className={`border rounded-lg hover:shadow-md cursor-pointer transition p-3 ${
-                    chartType === name
-                      ? "bg-blue-50 border-blue-300"
-                      : "bg-white"
+                  className={`rounded-lg hover:shadow-md cursor-pointer transition p-3 ${
+                    chartType === id
+                      ? "bg-blue-50 border border-blue-300"
+                      : "bg-gray-50"
                   }`}
                   onClick={() => {
-                    setChartType(name);
-                    setActiveTab("config")
+                    setChartType(id);
+                    setActiveTab("config");
                   }}
                 >
-                  <div className="h-40">
+                  <div className="h-50">
                     <Component />
                   </div>
-                  <p className="text-center text-sm font-medium mt-2">{name}</p>
+                  <p className="text-center text-sm font-medium mt-2">{title}</p>
                 </div>
               ))}
               <hr />

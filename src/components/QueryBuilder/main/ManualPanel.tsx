@@ -1,5 +1,3 @@
-import { ENTITIES } from "@/mock/MockData";
-
 export const ManualPanel = () => {
 
   return (
@@ -14,20 +12,6 @@ export const ManualPanel = () => {
               <input type="checkbox" name="all" id="all" />
               <label htmlFor="all">All Columns (*)</label>
             </div>
-          </div>
-
-          <div>
-            {
-              Object.entries(ENTITIES).map(([table, columns]) => (
-                <div key={table}>
-                  {columns.length > 0 && 
-                    columns.map((col, idx) => (
-                      <div key={idx}>{col.name}</div>
-                    ))
-                  }
-                </div>
-              ))
-            }
           </div>
         </div>
 

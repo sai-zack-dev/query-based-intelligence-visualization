@@ -1,14 +1,11 @@
 import { chartMeta } from "@/data/chartMeta";
+import { useChart } from "@/context/ChartContext";
 
-interface Props {
-  activeCategoryId: string;
-  setActiveCategoryId: (id: string) => void;
-}
-
-export default function ChartCategories({
-  activeCategoryId,
-  setActiveCategoryId,
-}: Props) {
+export default function ChartCategories() {
+    const {
+      activeCategoryId,
+      setActiveCategoryId,
+    } = useChart();
   return (
     <>
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">

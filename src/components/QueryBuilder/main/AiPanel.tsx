@@ -2,8 +2,6 @@ import { FaArrowUp, FaChevronDown } from "react-icons/fa6";
 import { LuBot } from "react-icons/lu";
 import React, { useState, useRef, useEffect } from "react";
 import { Message } from "@/types/message";
-import { AI_MESSAGE } from "@/mock/MockData";
-
 
 export const AiPanel: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -56,7 +54,12 @@ export const AiPanel: React.FC = () => {
 
     
 
-    setMessages((prev) => [...prev, AI_MESSAGE]);
+    setMessages((prev) => [...prev, {
+      id: "2",
+      text: "OK",
+      isUser: false,
+      timestamp: new Date(),
+    }]);
     setIsLoading(false);
   };
 
