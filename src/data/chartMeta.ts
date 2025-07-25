@@ -5,10 +5,12 @@ import { LineBarAreaComposedChart } from "@/components/Chart/list/ComposedChart"
 import { BiaxialLineChart, DashedLineChart, SimpleLineChart } from "@/components/Chart/list/LineChart";
 import { IconType } from "react-icons";
 
+export type ChartName = "SimpleLineChart" | "DashedLineChart" | "BiaxialLineChart" | "SimpleArea" | "PercentArea" | "TinyBar" | "StackedBar" | "LineBarArea" | null;
+
 // Define chart meta types
 export type ChartTypeMeta = {
-  id: string;
-  name: string;
+  id: ChartName;
+  title: string;
   Component: React.FC;
 };
 
@@ -28,10 +30,9 @@ export const chartMeta: ChartCategoryMeta[] = [
     categoryTitle: "Line Chart",
     categoryIcon: IoTrendingUp,
     charts: [
-      { id: "simple-line", name: "Simple Line", Component: SimpleLineChart },
-      { id: "dashed-line", name: "Dashed Line", Component: DashedLineChart },
-      { id: "biaxial-line", name: "Biaxial Line", Component: BiaxialLineChart },
-      // { id: "connect-nulls", name: "Connect Nulls", Component: LineChartConnectNulls },
+      { id: "SimpleLineChart", title: "Simple Line", Component: SimpleLineChart },
+      { id: "DashedLineChart", title: "Dashed Line", Component: DashedLineChart },
+      { id: "BiaxialLineChart", title: "Biaxial Line", Component: BiaxialLineChart },
     ],
   },
   {
@@ -39,9 +40,8 @@ export const chartMeta: ChartCategoryMeta[] = [
     categoryTitle: "Area Chart",
     categoryIcon: IoGitNetwork,
     charts: [
-      { id: "simple-area", name: "Simple Area", Component: SimpleAreaChart },
-      // { id: "connect-nulls", name: "Connect Nulls", Component: AreaChartConnectNulls },
-      { id: "percent-area", name: "Percent Area", Component: PercentAreaChart },
+      { id: "SimpleArea", title: "Simple Area", Component: SimpleAreaChart },
+      { id: "PercentArea", title: "Percent Area", Component: PercentAreaChart },
     ],
   },
   {
@@ -49,8 +49,8 @@ export const chartMeta: ChartCategoryMeta[] = [
     categoryTitle: "Bar Chart",
     categoryIcon: IoBarChart,
     charts: [
-      { id: "tiny-bar", name: "Tiny Bar", Component: TinyBarChart },
-      { id: "stacked-bar", name: "Stacked Bar", Component: StackedBarChart },
+      { id: "TinyBar", title: "Tiny Bar", Component: TinyBarChart },
+      { id: "StackedBar", title: "Stacked Bar", Component: StackedBarChart },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const chartMeta: ChartCategoryMeta[] = [
     categoryTitle: "Composed Chart",
     categoryIcon: IoLayers,
     charts: [
-      { id: "line-bar-area", name: "Line-Bar-Area", Component: LineBarAreaComposedChart },
+      { id: "LineBarArea", title: "Line-Bar-Area", Component: LineBarAreaComposedChart },
     ],
   },
 ];

@@ -1,11 +1,14 @@
 import { chartMeta } from "@/data/chartMeta";
 import { useEffect, useRef } from "react";
+import { useChart } from "@/context/ChartContext";
 
-interface Props {
-  setActiveCategoryId: (id: string) => void;
-}
-
-const ChartSelection: React.FC<Props> = ({ setActiveCategoryId }) => {
+const ChartSelection: React.FC = () => {
+  const {
+    setActiveCategoryId,
+    chartType,
+    setChartType,
+    setActiveTab
+  } = useChart();
   const containerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -35,33 +38,52 @@ const ChartSelection: React.FC<Props> = ({ setActiveCategoryId }) => {
   }, [setActiveCategoryId]);
 
   return (
-    <div
-      ref={containerRef}
-      className="space-y-10 pr-4 h-[80vh] overflow-auto"
-    >
-      {chartMeta.map((category) => (
-        <section
-          key={category.categoryId}
-          id={`category-${category.categoryId}`}
-          data-category-id={category.categoryId}
-        >
-          <h2 className="text-xl font-bold mb-4">{category.categoryTitle}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {category.charts.map(({ id, name, Component }) => (
-              <div
-                key={id}
-                className="border rounded-lg shadow-sm hover:shadow-md transition p-3 bg-white"
-              >
-                <div className="h-40">
-                  <Component />
+    <>
+      <div className="px-4">
+        <h2 className="border-b pb-3 border-gray-200 font-semibold text-gray-800">
+          Chart Selection
+        </h2>
+      </div>
+      <div
+        ref={containerRef}
+        className="space-y-10 p-4 pb-0 h-[75vh] overflow-auto"
+      >
+        {chartMeta.map((category) => (
+          <section
+            key={category.categoryId}
+            id={`category-${category.categoryId}`}
+            data-category-id={category.categoryId}
+          >
+            <h2 className="text-xl font-bold mb-4 flex justify-center items-center gap-3">
+              <category.categoryIcon className="w-6 h-6" />
+              {category.categoryTitle}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {category.charts.map(({ id, title, Component }) => (
+                <div
+                  key={id}
+                  className={`rounded-lg hover:shadow-md cursor-pointer transition p-3 ${
+                    chartType === id
+                      ? "bg-blue-50 border border-blue-300"
+                      : "bg-gray-50"
+                  }`}
+                  onClick={() => {
+                    setChartType(id);
+                    setActiveTab("config");
+                  }}
+                >
+                  <div className="h-50">
+                    <Component />
+                  </div>
+                  <p className="text-center text-sm font-medium mt-2">{title}</p>
                 </div>
-                <p className="text-center text-sm font-medium mt-2">{name}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
+              ))}
+              <hr />
+            </div>
+          </section>
+        ))}
+      </div>
+    </>
   );
 };
 

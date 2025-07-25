@@ -1,17 +1,7 @@
-import { ChartTab } from "@/screen/ChartGenerationPage";
 import ChartCategories from "./sidebar/ChartCategories";
 import ChartSetting from "./sidebar/ChartSetting";
-import QuerySource from "./sidebar/QuerySource";
 import { SidebarData } from "@/types/sidebar";
-import {
-  RiInformation2Fill,
-  RiInformation2Line,
-  RiSidebarFoldLine,
-  RiSidebarUnfoldLine,
-} from "react-icons/ri";
-import { FiBookmark, FiDatabase } from "react-icons/fi";
-import { FaBookmark, FaDatabase } from "react-icons/fa";
-import { useState } from "react";
+import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
 import SidebarTab from "../common/SidebarTab";
 import {
   IoPieChart,
@@ -19,22 +9,10 @@ import {
   IoSettingsOutline,
   IoSettingsSharp,
 } from "react-icons/io5";
+import { useChart } from "@/context/ChartContext";
 
-interface Prop extends SidebarData {
-  activeTab: ChartTab;
-  setActiveTab: React.Dispatch<React.SetStateAction<ChartTab>>;
-  activeCategoryId: string;
-  setActiveCategoryId: (id: string) => void;
-}
-
-const SidePanel: React.FC<Prop> = ({
-  sidebarActive,
-  toggleSidebar,
-  activeTab,
-  setActiveTab,
-  activeCategoryId,
-  setActiveCategoryId,
-}) => {
+const SidePanel = ({ sidebarActive, toggleSidebar }: SidebarData) => {
+  const { activeTab, setActiveTab, chartType } = useChart();
   const sidebarTabs = [
     {
       id: "type",
@@ -46,11 +24,6 @@ const SidePanel: React.FC<Prop> = ({
       icon: IoSettingsOutline,
       activeIcon: IoSettingsSharp,
     },
-    // {
-    //   id: "info",
-    //   icon: RiInformation2Line,
-    //   activeIcon: RiInformation2Fill,
-    // },
   ];
   const sidebarClasses = `
     sidebar
@@ -70,6 +43,8 @@ const SidePanel: React.FC<Prop> = ({
     }
   `.trim();
 
+  const isDisabled = chartType === null;
+
   return (
     <>
       {/* Sidebar Panel */}
@@ -77,14 +52,8 @@ const SidePanel: React.FC<Prop> = ({
         {/* Sidebar Content */}
         {sidebarActive && (
           <>
-            {activeTab === "type" && (
-              <ChartCategories
-                activeCategoryId={activeCategoryId}
-                setActiveCategoryId={setActiveCategoryId}
-              />
-            )}
+            {activeTab === "type" && <ChartCategories />}
             {activeTab === "config" && <ChartSetting />}
-            {/* {activeTab === "info" && <QuerySource />} */}
           </>
         )}
       </div>
@@ -105,6 +74,7 @@ const SidePanel: React.FC<Prop> = ({
             onSelect={(tabId: string) =>
               setActiveTab(tabId as "type" | "config" | "info")
             }
+            isDisabled={isDisabled}
           />
         ))}
       </div>

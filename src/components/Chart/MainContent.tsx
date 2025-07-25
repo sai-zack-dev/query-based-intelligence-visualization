@@ -1,21 +1,15 @@
 import ChartSelection from "./main/ChartSelection";
-import { ChartTab } from "@/screen/ChartGenerationPage";
-import QueryResult from "./main/QueryResult";
 import ChartPreview from "./main/ChartPreview";
+import { useChart } from "@/context/ChartContext";
 
-interface MainContentProps {
-  activeTab: ChartTab;
-  setActiveCategoryId: (id: string) => void;
-}
-
-const MainContent: React.FC<MainContentProps> = ({
-  activeTab,
-  setActiveCategoryId,
-}) => {
+const MainContent: React.FC = () => {
+  const {
+    activeTab,
+  } = useChart();
   return (
-    <div className="mr-6 p-4 pt-3 rounded-xl bg-white shadow flex-grow transition-all duration-300">
+    <div className="mr-6 pt-3 rounded-xl bg-white shadow flex-grow transition-all duration-300">
       {activeTab === "type" && (
-        <ChartSelection setActiveCategoryId={setActiveCategoryId} />
+        <ChartSelection />
       )}
       {activeTab === "config" && <ChartPreview />}
       {/* {activeTab === "info" && <QueryResult />} */}
@@ -24,4 +18,3 @@ const MainContent: React.FC<MainContentProps> = ({
 };
 
 export default MainContent;
-

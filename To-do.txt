@@ -1,0 +1,13 @@
+Data Connection
+- Excel (5)
+
+Query Builder
+- AI (2)
+- Manual form (4)
+
+Chart Generation
+- Chart Setting (1)
+
+Dashboard
+- UI (3)
+- Edit (6)
