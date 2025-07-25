@@ -3,10 +3,10 @@ Data Connection
 
 Query Builder
 - AI (2)
-- Manual form (4)
+- Manual form (done)
 
 Chart Generation
-- Chart Setting (1)
+- Chart Setting (done)
 
 Dashboard
 - UI (3)

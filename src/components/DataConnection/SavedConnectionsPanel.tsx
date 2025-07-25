@@ -33,7 +33,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
     ${
       sidebarActive
         ? `translate-x-[250px] lg:translate-x-[300px] xl:translate-x-[350px]`
-        : "shadow translate-x-0"
+        : "shadow translate-x-0 bg-white"
     }
   `.trim();
 

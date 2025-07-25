@@ -40,7 +40,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
     sidebar
     ${
       sidebarActive
-        ? "translate-x-0 min-w-[300px] lg:min-w-[350px] xl:min-w-[400px]"
+        ? "translate-x-0 min-w-[300px] w-[300px] lg:min-w-[350px] xl:min-w-[400px]"
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();
@@ -50,7 +50,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
     ${
       sidebarActive
         ? `translate-x-[250px] lg:translate-x-[300px] xl:translate-x-[350px]`
-        : "shadow translate-x-0"
+        : "shadow translate-x-0 bg-white"
     }
   `.trim();
 
