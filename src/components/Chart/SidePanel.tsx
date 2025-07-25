@@ -29,7 +29,7 @@ const SidePanel = ({ sidebarActive, toggleSidebar }: SidebarData) => {
     sidebar
     ${
       sidebarActive
-        ? "translate-x-0 min-w-[300px] w-[300px] lg:w-[400px] xl:w-[500px]"
+        ? "translate-x-0 min-w-[300px] w-[300px] lg:w-[350px] xl:w-[400px]"
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();
@@ -38,8 +38,8 @@ const SidePanel = ({ sidebarActive, toggleSidebar }: SidebarData) => {
     sidebar-toggle
     ${
       sidebarActive
-        ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]`
-        : "shadow translate-x-0"
+        ? `translate-x-[250px] lg:translate-x-[300px] xl:translate-x-[350px]`
+        : "shadow translate-x-0 bg-white"
     }
   `.trim();
 

@@ -1,4 +1,3 @@
-// electron/services/connectionManager.ts - MySQL connection management
 import mysql from "mysql2/promise";
 import type { ConnectionData } from "@/types/connection";
 
@@ -6,7 +5,9 @@ class ConnectionManager {
   private activeConnection: mysql.Connection | null = null;
   private activeConnectionMeta: ConnectionData | null = null;
 
-  async testConnection(config: any): Promise<{ success: boolean; message?: string }> {
+  async testConnection(
+    config: any
+  ): Promise<{ success: boolean; message?: string }> {
     const { host, port, username, password, database } = config;
 
     try {
@@ -27,7 +28,9 @@ class ConnectionManager {
     }
   }
 
-  async connectToDatabase(conn: any): Promise<{ success: boolean; message?: string }> {
+  async connectToDatabase(
+    conn: any
+  ): Promise<{ success: boolean; message?: string }> {
     try {
       // Close existing connection
       if (this.activeConnection) {
@@ -76,28 +79,47 @@ class ConnectionManager {
     }
   }
 
-  getActiveConnectionMeta(): { success: boolean; meta?: ConnectionData; message?: string } {
+  getActiveConnectionMeta(): {
+    success: boolean;
+    meta?: ConnectionData;
+    message?: string;
+  } {
     if (this.activeConnectionMeta) {
       return { success: true, meta: this.activeConnectionMeta };
     }
     return { success: false, message: "No active connection" };
   }
 
-  async getDatabaseExplorerData(): Promise<{ success: boolean; explorer?: any; message?: string }> {
+  getActiveConnection(): mysql.Connection | null {
+    return this.activeConnection;
+  }
+
+  async getDatabaseExplorerData(): Promise<{
+    success: boolean;
+    explorer?: any;
+    message?: string;
+  }> {
     if (!this.activeConnection) {
       return { success: false, message: "No active connection" };
     }
 
     try {
-      const [dbRows]: [any[], any] = await this.activeConnection.query("SHOW DATABASES");
+      const [dbRows]: [any[], any] = await this.activeConnection.query(
+        "SHOW DATABASES"
+      );
       const databases: string[] = dbRows.map((row: any) => row.Database);
 
-      const dbData: Record<string, { tables: string[]; schema: Record<string, any[]> }> = {};
+      const dbData: Record<
+        string,
+        { tables: string[]; schema: Record<string, any[]> }
+      > = {};
 
       for (const db of databases) {
         await this.activeConnection.query(`USE \`${db}\``);
 
-        const [tableRows]: [any[], any] = await this.activeConnection.query("SHOW TABLES");
+        const [tableRows]: [any[], any] = await this.activeConnection.query(
+          "SHOW TABLES"
+        );
         const tableNames: string[] = (tableRows as any[]).map(
           (t) => Object.values(t)[0] as string
         );
