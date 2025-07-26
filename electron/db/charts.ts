@@ -6,11 +6,10 @@ export function addChart(chart: {
   type: string;
   config: string;
   data: string;
-  query_result?: string;
 }) {
-  const db = getDatabase(); // ⬅ moved here
+  const db = getDatabase();
   db.prepare(`
-    INSERT INTO charts (uuid, title, type, config, data, query_result)
-    VALUES (@uuid, @title, @type, @config, @data, @query_result)
+    INSERT INTO charts (uuid, title, type, config, data)
+    VALUES (@uuid, @title, @type, @config, @data)
   `).run(chart);
 }

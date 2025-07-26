@@ -1,32 +1,9 @@
 import { useChart } from "@/context/ChartContext";
-import { groupBy } from "lodash";
 import { useMemo } from "react";
 import BarChartTemplate from "../template/BarChartTemplate";
 
 const ChartPreview: React.FC = () => {
-  const { chartType, lines, resultData, xKey, yKey, seriesKey } = useChart();
-
-  // Generate chart data by grouping on xKey and seriesKey
-  const chartData = useMemo(() => {
-    if (!resultData || resultData.length === 0 || !xKey || !yKey || !seriesKey)
-      return [];
-
-    const grouped = groupBy(resultData, (item) => item[xKey]);
-
-    return Object.entries(grouped).map(([xVal, records]) => {
-      const row: Record<string, any> = { [xKey]: xVal };
-
-      for (const record of records) {
-        const seriesValue = record[seriesKey];
-        const yVal = parseFloat(record[yKey]);
-        if (seriesValue && !isNaN(yVal)) {
-          row[seriesValue] = yVal;
-        }
-      }
-
-      return row;
-    });
-  }, [resultData, xKey, yKey, seriesKey]);
+  const { chartType, lines, xKey, chartData } = useChart();
 
   // Filter visible lines
   const activeLines = useMemo(
@@ -41,13 +18,6 @@ const ChartPreview: React.FC = () => {
           Chart Preview
         </h2>
       </div>
-
-      {/* <LineChartTemplate
-        name={chartType}
-        data={chartData}
-        lines={activeLines}
-        xKey={xKey}
-      /> */}
 
       <BarChartTemplate
         name={chartType}

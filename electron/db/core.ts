@@ -6,10 +6,10 @@ import { app } from "electron";
 let db: Database.Database | null = null;
 
 export async function initDatabase(): Promise<void> {
-  const dbPath = path.join(app.getPath("userData"), "connections.db");
+  const dbPath = path.join(app.getPath("userData"), "test.db"); // gonna change qbiv.db to production and test.db in test
   console.log("Using SQLite path:", dbPath);
   db = new Database(dbPath);
-
+  console.log("Db path:", dbPath);
   // Centralized table creation
   db.exec(`
     CREATE TABLE IF NOT EXISTS connections (
@@ -28,12 +28,12 @@ export async function initDatabase(): Promise<void> {
       title TEXT NOT NULL,
       type TEXT NOT NULL,
       config TEXT,
-      data TEXT,
-      query_result TEXT
+      data TEXT
     );
 
     CREATE TABLE IF NOT EXISTS dashboards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL,
       name TEXT NOT NULL
     );
     

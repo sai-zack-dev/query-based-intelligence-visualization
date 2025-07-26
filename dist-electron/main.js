@@ -12,7 +12,7 @@ import require$$1$2 from "timers";
 import require$$2$1 from "stream";
 import require$$0$1 from "buffer";
 import require$$1$1 from "string_decoder";
-import require$$0$2 from "crypto";
+import require$$0$2, { randomFillSync, randomUUID } from "crypto";
 import require$$0$5 from "zlib";
 import require$$1$3 from "util";
 import require$$0$6 from "url";
@@ -25865,9 +25865,10 @@ class ConnectionManager {
 const connectionManager = new ConnectionManager();
 let db = null;
 async function initDatabase() {
-  const dbPath = path.join(app.getPath("userData"), "connections.db");
+  const dbPath = path.join(app.getPath("userData"), "test.db");
   console.log("Using SQLite path:", dbPath);
   db = new Database(dbPath);
+  console.log("Db path:", dbPath);
   db.exec(`
     CREATE TABLE IF NOT EXISTS connections (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25885,12 +25886,12 @@ async function initDatabase() {
       title TEXT NOT NULL,
       type TEXT NOT NULL,
       config TEXT,
-      data TEXT,
-      query_result TEXT
+      data TEXT
     );
 
     CREATE TABLE IF NOT EXISTS dashboards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL,
       name TEXT NOT NULL
     );
     
@@ -26077,20 +26078,50 @@ const queryService = {
 function addChart(chart) {
   const db2 = getDatabase();
   db2.prepare(`
-    INSERT INTO charts (uuid, title, type, config, data, query_result)
-    VALUES (@uuid, @title, @type, @config, @data, @query_result)
+    INSERT INTO charts (uuid, title, type, config, data)
+    VALUES (@uuid, @title, @type, @config, @data)
   `).run(chart);
+}
+const byteToHex = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 256).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+}
+const rnds8Pool = new Uint8Array(256);
+let poolPtr = rnds8Pool.length;
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    randomFillSync(rnds8Pool);
+    poolPtr = 0;
+  }
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+const native = { randomUUID };
+function v4(options, buf, offset) {
+  var _a;
+  if (native.randomUUID && true && !options) {
+    return native.randomUUID();
+  }
+  options = options || {};
+  const rnds = options.random ?? ((_a = options.rng) == null ? void 0 : _a.call(options)) ?? rng();
+  if (rnds.length < 16) {
+    throw new Error("Random bytes length must be >= 16");
+  }
+  rnds[6] = rnds[6] & 15 | 64;
+  rnds[8] = rnds[8] & 63 | 128;
+  return unsafeStringify(rnds);
 }
 const chartService = {
   async saveChart(chartData) {
     try {
       addChart({
-        uuid: chartData.uuid,
+        uuid: v4(),
         title: chartData.title,
         type: chartData.type,
         config: JSON.stringify(chartData.config),
-        data: JSON.stringify(chartData.data),
-        query_result: chartData.query_result || void 0
+        data: JSON.stringify(chartData.data)
       });
       return { success: true, message: "Chart saved locally." };
     } catch (err) {
@@ -26098,25 +26129,32 @@ const chartService = {
     }
   }
 };
-const dashboardService = {
-  getAllDashboards() {
-    const db2 = getDatabase();
-    return db2.prepare("SELECT * FROM dashboards").all();
-  },
-  createDashboard(name) {
-    const db2 = getDatabase();
-    const result = db2.prepare("INSERT INTO dashboards (name) VALUES (?)").run(name);
-    return result.lastInsertRowid;
-  },
-  linkChartToDashboard(chartId, dashboardId) {
-    const db2 = getDatabase();
-    db2.prepare(
-      `
+function getAllDashboards() {
+  const db2 = getDatabase();
+  return db2.prepare("SELECT * FROM dashboards").all();
+}
+function addDashboard(name) {
+  const db2 = getDatabase();
+  const uuid = v4();
+  const result = db2.prepare("INSERT INTO dashboards (uuid, name) VALUES (?, ?)").run(uuid, name);
+  return { id: Number(result.lastInsertRowid), uuid };
+}
+function linkChartToDashboard(chartId, dashboardId) {
+  const db2 = getDatabase();
+  db2.prepare(
+    `
     INSERT INTO dashboard_charts (dashboard_id, chart_id)
     VALUES (?, ?)
   `
-    ).run(dashboardId, chartId);
-  }
+  ).run(dashboardId, chartId);
+}
+const dashboardService = {
+  getAllDashboards,
+  createDashboard(name) {
+    const { id } = addDashboard(name);
+    return id;
+  },
+  linkChartToDashboard
 };
 function setupIpcHandlers() {
   ipcMain.handle(

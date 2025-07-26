@@ -1,8 +1,8 @@
 import { addChart } from "../db/charts";
+import { v4 as uuidv4 } from "uuid";
 
 export const chartService = {
   async saveChart(chartData: {
-    uuid: string;
     title: string;
     type: string;
     config: object;
@@ -11,12 +11,11 @@ export const chartService = {
   }) {
     try {
       addChart({
-        uuid: chartData.uuid,
+        uuid: uuidv4(),
         title: chartData.title,
         type: chartData.type,
         config: JSON.stringify(chartData.config),
         data: JSON.stringify(chartData.data),
-        query_result: chartData.query_result || undefined,
       });
 
       return { success: true, message: "Chart saved locally." };

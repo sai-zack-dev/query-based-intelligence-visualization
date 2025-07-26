@@ -1,6 +1,7 @@
 import { useChart } from "@/context/ChartContext";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import SaveToDashboardModal from "./SaveToDashboardModal";
 
 export default function ChartSetting() {
   const {
@@ -13,8 +14,11 @@ export default function ChartSetting() {
     setLines,
     seriesKey,
     setSeriesKey,
+    chartType,
+    chartData,
   } = useChart();
-
+  const [open, setOpen] = useState(false);
+  const [chartTitle, setChartTitle] = useState("Untitled Chart");
   const columns = Object.keys(resultData?.[0] || {});
   const numericColumns = columns.filter((key) =>
     resultData.some(
@@ -61,13 +65,26 @@ export default function ChartSetting() {
     updated[index].active = !updated[index].active;
     setLines(updated);
   };
-
+  const activeLines = useMemo(
+    () => lines.filter((line) => line.active),
+    [lines]
+  );
   return (
     <>
       <h2 className="border-b pb-3 border-gray-200 font-semibold text-gray-800 mb-3">
         Chart Preview
       </h2>
       <div className="pl-10 gap-4 flex flex-col">
+        <div>
+          <label className="input-label">Chart Title</label>
+          <input
+            type="text"
+            className="input"
+            value={chartTitle}
+            onChange={(e) => setChartTitle(e.target.value)}
+            placeholder="Enter chart title"
+          />
+        </div>
         <div>
           <label className="input-label">X-Axis</label>
           <select
@@ -82,9 +99,8 @@ export default function ChartSetting() {
             ))}
           </select>
         </div>
-
         <div>
-          <label className="input-label">Y-Axis (Numeric)</label>
+          <label className="input-label">Y-Axis</label>
           <select
             className="input"
             value={yKey}
@@ -97,7 +113,6 @@ export default function ChartSetting() {
             ))}
           </select>
         </div>
-
         <div>
           <label className="input-label">Series Column</label>
           <select
@@ -112,7 +127,6 @@ export default function ChartSetting() {
             ))}
           </select>
         </div>
-
         <div>
           <label className="input-label">
             Series per <code>{seriesKey}</code>
@@ -156,8 +170,17 @@ export default function ChartSetting() {
             </div>
           ))}
         </div>
-
-        <button className="btn-primary">
+        <SaveToDashboardModal
+          open={open}
+          onClose={() => setOpen(false)}
+          chart={{
+            title: chartTitle,
+            type: chartType || null,
+            config: { xKey, bars: activeLines },
+            data: chartData,
+          }}
+        />
+        <button onClick={() => setOpen(true)} className="btn-primary text-sm">
           Save to Dashboard
         </button>
       </div>
