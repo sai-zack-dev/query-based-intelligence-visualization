@@ -40,7 +40,7 @@ export default function ChartSetting() {
       const existing = lines.find((l) => l.dataKey === val);
       return {
         dataKey: val,
-        stroke: existing?.stroke || defaultColor(idx),
+        color: existing?.color || defaultColor(idx),
         active: existing?.active ?? true, // ✅ visibility
       };
     });
@@ -51,7 +51,7 @@ export default function ChartSetting() {
   // Handle color change
   const handleChangeColor = (index: number, newColor: string) => {
     const updated = [...lines];
-    updated[index].stroke = newColor;
+    updated[index].color = newColor;
     setLines(updated);
   };
 
@@ -138,7 +138,7 @@ export default function ChartSetting() {
 
               {/* Color Picker with dim + disable when inactive */}
               <ColorPicker
-                value={line.stroke}
+                value={line.color}
                 onChange={(val) => handleChangeColor(index, val)}
                 disabled={!line.active}
                 className={!line.active ? "opacity-40 pointer-events-none" : ""}
@@ -156,6 +156,10 @@ export default function ChartSetting() {
             </div>
           ))}
         </div>
+
+        <button className="btn-primary">
+          Save to Dashboard
+        </button>
       </div>
     </>
   );

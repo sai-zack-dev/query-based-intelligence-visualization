@@ -1,3 +1,4 @@
+// electron/services/connectionManager.ts
 import mysql from "mysql2/promise";
 import type { ConnectionData } from "@/types/connection";
 
@@ -58,7 +59,7 @@ class ConnectionManager {
         date: new Date().toISOString(),
       };
 
-      console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
+      // console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };

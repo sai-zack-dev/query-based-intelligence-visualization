@@ -1,37 +1,4 @@
-import Database from "better-sqlite3";
-import path from "node:path";
-import { app } from "electron";
-
-let db: Database.Database | null = null;
-
-function getDbPath(): string {
-  if (!app.isReady()) {
-    throw new Error("Cannot access userData path before app is ready");
-  }
-
-  const p = path.join(app.getPath("userData"), "connections.db");
-  console.log("Using SQLite path:", p);
-  return p;
-}
-
-export function getDatabase() {
-  if (!db) {
-    const dbPath = getDbPath();
-    db = new Database(dbPath);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS connections (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        host TEXT,
-        port TEXT,
-        username TEXT,
-        database TEXT
-      );
-    `);
-  }
-  return db;
-}
+import { getDatabase } from "./core";
 
 export function getAllConnections() {
   const db = getDatabase();

@@ -6,7 +6,7 @@ import {
   updateConnectionNameByConfig,
   findConnectionByName,
   findConnectionByConfig,
-} from "../db";
+} from "../db/connections";
 
 export class ConnectionService {
   private validateConnection(conn: any): { isValid: boolean; missingFields?: string[] } {

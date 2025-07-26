@@ -5,7 +5,7 @@ export type ChartTab = "type" | "config" | "info";
 
 export interface LineConfig {
   dataKey: string;
-  stroke: string;
+  color: string;
   active: boolean;
 }
 

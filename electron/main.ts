@@ -6,6 +6,7 @@ import { setupErrorHandlers } from "./utils/errorHandlers";
 import { createMainWindow } from "./windows/mainWindow";
 import { setupIpcHandlers } from "./ipc/ipcHandlers";
 import { setupAppEvents } from "./events/appEvents";
+import { initDatabase } from "./db/core";
 
 // Setup global error handlers
 setupErrorHandlers();
@@ -25,7 +26,10 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let mainWindow: BrowserWindow | null = null;
 
-function initializeApp() {
+async function initializeApp() {
+// ✅ Ensure database is initialized before anything else
+  await initDatabase();
+
   // Create main window
   mainWindow = createMainWindow();
   

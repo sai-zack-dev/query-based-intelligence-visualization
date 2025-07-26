@@ -25798,7 +25798,6 @@ class ConnectionManager {
         file: null,
         date: (/* @__PURE__ */ new Date()).toISOString()
       };
-      console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
       return { success: true };
     } catch (err) {
       return { success: false, message: err.message };
@@ -25865,30 +25864,51 @@ class ConnectionManager {
 }
 const connectionManager = new ConnectionManager();
 let db = null;
-function getDbPath() {
-  if (!app.isReady()) {
-    throw new Error("Cannot access userData path before app is ready");
-  }
-  const p = path.join(app.getPath("userData"), "connections.db");
-  console.log("Using SQLite path:", p);
-  return p;
+async function initDatabase() {
+  const dbPath = path.join(app.getPath("userData"), "connections.db");
+  console.log("Using SQLite path:", dbPath);
+  db = new Database(dbPath);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS connections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      host TEXT,
+      port TEXT,
+      username TEXT,
+      database TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS charts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL,
+      title TEXT NOT NULL,
+      type TEXT NOT NULL,
+      config TEXT,
+      data TEXT,
+      query_result TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS dashboards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS dashboard_charts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dashboard_id INTEGER NOT NULL,
+      chart_id INTEGER NOT NULL,
+      FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
+      FOREIGN KEY (chart_id) REFERENCES charts(id)
+    );
+
+  `);
 }
 function getDatabase() {
-  if (!db) {
-    const dbPath = getDbPath();
-    db = new Database(dbPath);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS connections (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        host TEXT,
-        port TEXT,
-        username TEXT,
-        database TEXT
-      );
-    `);
-  }
+  if (!db)
+    throw new Error(
+      "Database not initialized. Call initDatabase() after app is ready."
+    );
   return db;
 }
 function getAllConnections() {
@@ -26041,50 +26061,111 @@ class ConnectionService {
   }
 }
 const connectionService = new ConnectionService();
-function setupIpcHandlers() {
-  ipcMain.handle("test-mysql-connection", async (_, config) => {
-    return await connectionManager.testConnection(config);
-  });
-  ipcMain.handle("save-connection", async (_, conn) => {
-    return await connectionService.saveConnection(conn);
-  });
-  ipcMain.handle("update-connection-by-name", async (_, conn) => {
-    return await connectionService.updateConnectionByName(conn);
-  });
-  ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
-    return await connectionService.updateConnectionNameByConfig(payload);
-  });
-  ipcMain.handle("force-create-connection", async (_, conn) => {
-    return await connectionService.forceCreateConnection(conn);
-  });
-  ipcMain.handle("get-connections", () => {
-    return connectionService.getConnections();
-  });
-  ipcMain.handle("connect-to-database", async (_, conn) => {
-    return await connectionManager.connectToDatabase(conn);
-  });
-  ipcMain.handle("disconnect-database", async () => {
-    return await connectionManager.disconnect();
-  });
-  ipcMain.handle("get-active-connection-meta", async () => {
-    return connectionManager.getActiveConnectionMeta();
-  });
-  ipcMain.handle("get-database-explorer-data", async () => {
-    return await connectionManager.getDatabaseExplorerData();
-  });
-  ipcMain.handle(
-    "run-sql-query",
-    async (_, payload) => {
-      try {
-        const conn = connectionManager.getActiveConnection();
-        if (!conn) return { success: false, message: "No DB connected" };
-        await conn.query(`USE \`${payload.database}\``);
-        const [rows] = await conn.query(payload.query);
-        return { success: true, data: rows };
-      } catch (err) {
-        return { success: false, message: err.message };
-      }
+const queryService = {
+  async runSQL(payload) {
+    try {
+      const conn = connectionManager.getActiveConnection();
+      if (!conn) return { success: false, message: "No DB connected" };
+      await conn.query(`USE \`${payload.database}\``);
+      const [rows] = await conn.query(payload.query);
+      return { success: true, data: rows };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
+  }
+};
+function addChart(chart) {
+  const db2 = getDatabase();
+  db2.prepare(`
+    INSERT INTO charts (uuid, title, type, config, data, query_result)
+    VALUES (@uuid, @title, @type, @config, @data, @query_result)
+  `).run(chart);
+}
+const chartService = {
+  async saveChart(chartData) {
+    try {
+      addChart({
+        uuid: chartData.uuid,
+        title: chartData.title,
+        type: chartData.type,
+        config: JSON.stringify(chartData.config),
+        data: JSON.stringify(chartData.data),
+        query_result: chartData.query_result || void 0
+      });
+      return { success: true, message: "Chart saved locally." };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }
+};
+const dashboardService = {
+  getAllDashboards() {
+    const db2 = getDatabase();
+    return db2.prepare("SELECT * FROM dashboards").all();
+  },
+  createDashboard(name) {
+    const db2 = getDatabase();
+    const result = db2.prepare("INSERT INTO dashboards (name) VALUES (?)").run(name);
+    return result.lastInsertRowid;
+  },
+  linkChartToDashboard(chartId, dashboardId) {
+    const db2 = getDatabase();
+    db2.prepare(
+      `
+    INSERT INTO dashboard_charts (dashboard_id, chart_id)
+    VALUES (?, ?)
+  `
+    ).run(dashboardId, chartId);
+  }
+};
+function setupIpcHandlers() {
+  ipcMain.handle(
+    "test-mysql-connection",
+    (_, config) => connectionManager.testConnection(config)
+  );
+  ipcMain.handle(
+    "save-connection",
+    (_, conn) => connectionService.saveConnection(conn)
+  );
+  ipcMain.handle(
+    "update-connection-by-name",
+    (_, conn) => connectionService.updateConnectionByName(conn)
+  );
+  ipcMain.handle(
+    "update-connection-name-by-config",
+    (_, payload) => connectionService.updateConnectionNameByConfig(payload)
+  );
+  ipcMain.handle(
+    "force-create-connection",
+    (_, conn) => connectionService.forceCreateConnection(conn)
+  );
+  ipcMain.handle("get-connections", () => connectionService.getConnections());
+  ipcMain.handle(
+    "connect-to-database",
+    (_, conn) => connectionManager.connectToDatabase(conn)
+  );
+  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
+  ipcMain.handle(
+    "get-active-connection-meta",
+    () => connectionManager.getActiveConnectionMeta()
+  );
+  ipcMain.handle(
+    "get-database-explorer-data",
+    () => connectionManager.getDatabaseExplorerData()
+  );
+  ipcMain.handle("run-sql-query", (_, payload) => queryService.runSQL(payload));
+  ipcMain.handle(
+    "save-chart",
+    (_, chartData) => chartService.saveChart(chartData)
+  );
+  ipcMain.handle("get-dashboards", () => dashboardService.getAllDashboards());
+  ipcMain.handle(
+    "create-dashboard",
+    (_, name) => dashboardService.createDashboard(name)
+  );
+  ipcMain.handle(
+    "link-chart-to-dashboard",
+    (_, { chartId, dashboardId }) => dashboardService.linkChartToDashboard(chartId, dashboardId)
   );
 }
 function setupAppEvents(createWindowCallback) {
@@ -26108,7 +26189,8 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let mainWindow = null;
-function initializeApp() {
+async function initializeApp() {
+  await initDatabase();
   mainWindow = createMainWindow();
   setupIpcHandlers();
   setupAppEvents(() => createMainWindow());

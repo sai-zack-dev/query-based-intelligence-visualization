@@ -1,7 +1,7 @@
 import { useChart } from "@/context/ChartContext";
-import LineChartTemplate from "../template/LineChartTemplate";
 import { groupBy } from "lodash";
 import { useMemo } from "react";
+import BarChartTemplate from "../template/BarChartTemplate";
 
 const ChartPreview: React.FC = () => {
   const { chartType, lines, resultData, xKey, yKey, seriesKey } = useChart();
@@ -42,11 +42,24 @@ const ChartPreview: React.FC = () => {
         </h2>
       </div>
 
-      <LineChartTemplate
+      {/* <LineChartTemplate
         name={chartType}
         data={chartData}
         lines={activeLines}
         xKey={xKey}
+      /> */}
+
+      <BarChartTemplate
+        name={chartType}
+        data={chartData}
+        xKey={xKey}
+        bars={activeLines.map((line) => ({
+          dataKey: line.dataKey,
+          fill: line.color,
+          active: line.active,
+          stackId: chartType === "StackedBar" ? "a" : undefined,
+          activeBar: chartType === "SimpleBar" ? true : undefined,
+        }))}
       />
 
       <h1 className="w-full text-center pb-5 text-sm text-muted-foreground">
