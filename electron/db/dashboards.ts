@@ -22,18 +22,18 @@ export function addDashboard(name: string): { id: number; uuid: string } {
   return { id: Number(result.lastInsertRowid), uuid };
 }
 
-export function linkChartToDashboard(chartId: number, dashboardId: number): void {
+export function linkChartToDashboard(
+  chartId: number,
+  dashboardId: number
+): void {
   const db = getDatabase();
   db.prepare(
-    `
-    INSERT INTO dashboard_charts (dashboard_id, chart_id)
-    VALUES (?, ?)
-  `
-  ).run(dashboardId, chartId);
-  
+    `INSERT INTO dashboard_charts (dashboard_id, chart_id, x, y, width, height)
+   VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(dashboardId, chartId, 0, 0, 4, 4);
 }
 
-export function getChartsByDashboardUUID(uuid: string) {
+export function getChartsByDashboardID(id: string) {
   const db = getDatabase();
 
   return db
@@ -46,7 +46,7 @@ export function getChartsByDashboardUUID(uuid: string) {
       WHERE dashboards.id = ?
     `
     )
-    .all(uuid)
+    .all(id)
     .map((c: any) => ({
       ...c,
       config: JSON.parse(c.config),

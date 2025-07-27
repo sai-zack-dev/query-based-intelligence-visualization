@@ -41,10 +41,13 @@ export async function initDatabase(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       dashboard_id INTEGER NOT NULL,
       chart_id INTEGER NOT NULL,
+      x INTEGER NOT NULL DEFAULT 0,
+      y INTEGER NOT NULL DEFAULT 0,
+      width INTEGER NOT NULL DEFAULT 4,
+      height INTEGER NOT NULL DEFAULT 4,
       FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
       FOREIGN KEY (chart_id) REFERENCES charts(id)
     );
-
   `);
 }
 

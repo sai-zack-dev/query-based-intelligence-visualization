@@ -43,7 +43,10 @@ export default function SaveToDashboardModal({ open, onClose, chart }: Props) {
 
   const handleCreateDashboard = async () => {
     if (!newName.trim()) return;
-    const id = await window.ipcRenderer.invoke("create-dashboard", newName.trim());
+    const id = await window.ipcRenderer.invoke(
+      "create-dashboard",
+      newName.trim()
+    );
     const newDashboard = { id, name: newName.trim() };
     setDashboards((prev) => [...prev, newDashboard]);
     setSelectedId(id);
@@ -54,15 +57,22 @@ export default function SaveToDashboardModal({ open, onClose, chart }: Props) {
   const handleConfirm = async () => {
     if (!selectedId) return;
 
-    const chartId = await window.ipcRenderer.invoke("save-chart", chart);
+    const result = await window.ipcRenderer.invoke("save-chart", chart);
+    if (!result.success) {
+      console.error(result.message);
+      return;
+    }
+
+    const chartId = result.id;
+    console.log("Chart saved with ID:", chartId, "to dashboard ID:", selectedId);
+
     await window.ipcRenderer.invoke("link-chart-to-dashboard", {
       chartId,
       dashboardId: selectedId,
     });
 
     onClose();
-    // For now, navigate to /dashboard/[id] (UUID version)
-    navigate(`/dashboard/${selectedId}`);
+    navigate(`/dashboard`);
   };
 
   return (
@@ -70,7 +80,9 @@ export default function SaveToDashboardModal({ open, onClose, chart }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save to Dashboard</DialogTitle>
-          <DialogDescription>Select or create a dashboard to add your chart.</DialogDescription>
+          <DialogDescription>
+            Select or create a dashboard to add your chart.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">

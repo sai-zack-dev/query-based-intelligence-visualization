@@ -1,11 +1,23 @@
 import { SidebarData } from "@/types/sidebar";
+import { useEffect, useState } from "react";
 import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { CheckIcon, PlusIcon } from "lucide-react";
 
-export const ListArea: React.FC<SidebarData> = ({
+interface ListAreaProps extends SidebarData {
+  setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const ListArea: React.FC<ListAreaProps> = ({
   sidebarActive,
   toggleSidebar,
+  setIsEdit
 }) => {
+  const [dashboards, setDashboards] = useState<{ id: number; name: string }[]>(
+    []
+  );
   const sidebarNav =
     `flex p-3 items-center bg-white shadow-md rounded-e-xl transition-all duration-300 gap-3
     ${sidebarActive ? `translate-x-0 w-30` : "w-12 overflow-hidden"}
@@ -27,6 +39,27 @@ export const ListArea: React.FC<SidebarData> = ({
         : "shadow translate-x-0 bg-white"
     }
   `.trim();
+
+  useEffect(() => {
+    window.ipcRenderer
+      .invoke("get-dashboards")
+      .then((data) => setDashboards(data))
+      .catch((err) => console.error("Failed to fetch dashboards:", err));
+  }, []);
+  const [creatingNew, setCreatingNew] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  const handleCreateDashboard = async () => {
+    if (!newName.trim()) return;
+    const id = await window.ipcRenderer.invoke(
+      "create-dashboard",
+      newName.trim()
+    );
+    const newDashboard = { id, name: newName.trim() };
+    setDashboards((prev) => [...prev, newDashboard]);
+    setNewName("");
+    setCreatingNew(false);
+  };
   return (
     <div className="pt-6">
       <Link to="/" className={sidebarNav}>
@@ -39,11 +72,75 @@ export const ListArea: React.FC<SidebarData> = ({
       {/* Sidebar Panel */}
       <div className={sidebarClasses}>
         {/* Header */}
-        {sidebarActive && (
-          <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
-            <h2 className="font-semibold text-gray-800">Dashboards</h2>
+        <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
+          <h2 className="font-semibold text-gray-800">Dashboards</h2>
+        </div>
+        {/* Dashboard List */}
+        <div className="flex flex-col justify-between items-between min-h-30">
+          <div className="flex flex-col gap-1">
+            {dashboards.length === 0 ? (
+              <p className="text-sm text-gray-400 px-3 py-2 italic text-center">
+                No dashboards found
+              </p>
+            ) : (
+              dashboards.map((dashboard) => (
+                <Link
+                  key={dashboard.id}
+                  to={`/dashboard/${dashboard.id}`}
+                  className="px-3 py-2 rounded-md text-sm hover:bg-blue-50 text-gray-700"
+                >
+                  {dashboard.name}
+                </Link>
+              ))
+            )}
           </div>
-        )}
+          {creatingNew && (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="New dashboard name"
+              />
+            </div>
+          )}
+          {creatingNew ? (
+            <div className="flex gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 cursor-pointer"
+                onClick={() => setCreatingNew(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-green-500 hover:bg-green-600 text-white cursor-pointer hover:text-white flex-1"
+                onClick={handleCreateDashboard}
+              >
+                Save
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => setCreatingNew(true)}
+            >
+              <PlusIcon className="mr-2 w-4 h-4" /> Add new dashboard
+            </Button>
+          )}
+          <Button
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => setIsEdit((prev) => !prev)}
+            >
+              Toggle Edit
+            </Button>
+        </div>
       </div>
 
       {/* Toggle Button */}

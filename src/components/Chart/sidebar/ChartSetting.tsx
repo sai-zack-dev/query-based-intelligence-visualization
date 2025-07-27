@@ -26,9 +26,26 @@ export default function ChartSetting() {
     )
   );
 
+  const hslToHex = (h: number, s: number, l: number) => {
+    s /= 100;
+    l /= 100;
+
+    const k = (n: number) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) =>
+      l - a * Math.max(-1, Math.min(Math.min(k(n) - 3, 9 - k(n)), 1));
+
+    const toHex = (x: number) =>
+      Math.round(x * 255)
+        .toString(16)
+        .padStart(2, "0");
+
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  };
+
   const defaultColor = (i: number) => {
-    const hue = (i * 137.508) % 360; // Golden angle for even hue distribution
-    return `hsl(${hue}, 65%, 55%)`; // Saturated mid-lightness colors
+    const hue = (i * 137.508) % 360; // Golden angle
+    return hslToHex(hue, 65, 55); // Convert to hex
   };
 
   // Get unique values of the selected series column

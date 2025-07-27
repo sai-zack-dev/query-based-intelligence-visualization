@@ -62,4 +62,8 @@ export function setupIpcHandlers() {
   ipcMain.handle("link-chart-to-dashboard", (_, { chartId, dashboardId }) =>
     dashboardService.linkChartToDashboard(chartId, dashboardId)
   );
+
+  ipcMain.handle("get-dashboard-charts", async (_, dashboardId: number) =>
+    chartService.getChartsByDashboardId(dashboardId)
+  );
 }

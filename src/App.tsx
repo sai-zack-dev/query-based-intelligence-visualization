@@ -33,6 +33,7 @@ const App = () => (
         }
       />
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard/:dashboardId" element={<DashboardPage />} />
     </Routes>
   </BrowserRouter>
 );

@@ -1,4 +1,4 @@
-import { addChart } from "../db/charts";
+import { addChart, getChartsByDashboardId } from "../db/charts";
 import { v4 as uuidv4 } from "uuid";
 
 export const chartService = {
@@ -10,7 +10,7 @@ export const chartService = {
     query_result?: string;
   }) {
     try {
-      addChart({
+      const result = addChart({
         uuid: uuidv4(),
         title: chartData.title,
         type: chartData.type,
@@ -18,9 +18,14 @@ export const chartService = {
         data: JSON.stringify(chartData.data),
       });
 
-      return { success: true, message: "Chart saved locally." };
+      return {
+        success: true,
+        message: "Chart saved locally.",
+        id: result.lastInsertRowid, // <- return inserted chart ID
+      };
     } catch (err: any) {
       return { success: false, message: err.message };
     }
   },
+  getChartsByDashboardId,
 };

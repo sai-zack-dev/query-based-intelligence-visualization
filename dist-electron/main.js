@@ -18188,21 +18188,27 @@ let CloseStatement$2 = class CloseStatement {
 };
 var close_statement$1 = CloseStatement$2;
 var field_flags = {};
-field_flags.NOT_NULL = 1;
-field_flags.PRI_KEY = 2;
-field_flags.UNIQUE_KEY = 4;
-field_flags.MULTIPLE_KEY = 8;
-field_flags.BLOB = 16;
-field_flags.UNSIGNED = 32;
-field_flags.ZEROFILL = 64;
-field_flags.BINARY = 128;
-field_flags.ENUM = 256;
-field_flags.AUTO_INCREMENT = 512;
-field_flags.TIMESTAMP = 1024;
-field_flags.SET = 2048;
-field_flags.NO_DEFAULT_VALUE = 4096;
-field_flags.ON_UPDATE_NOW = 8192;
-field_flags.NUM = 32768;
+var hasRequiredField_flags;
+function requireField_flags() {
+  if (hasRequiredField_flags) return field_flags;
+  hasRequiredField_flags = 1;
+  field_flags.NOT_NULL = 1;
+  field_flags.PRI_KEY = 2;
+  field_flags.UNIQUE_KEY = 4;
+  field_flags.MULTIPLE_KEY = 8;
+  field_flags.BLOB = 16;
+  field_flags.UNSIGNED = 32;
+  field_flags.ZEROFILL = 64;
+  field_flags.BINARY = 128;
+  field_flags.ENUM = 256;
+  field_flags.AUTO_INCREMENT = 512;
+  field_flags.TIMESTAMP = 1024;
+  field_flags.SET = 2048;
+  field_flags.NO_DEFAULT_VALUE = 4096;
+  field_flags.ON_UPDATE_NOW = 8192;
+  field_flags.NUM = 32768;
+  return field_flags;
+}
 const Packet$b = packet;
 const StringParser$2 = string;
 const CharsetToEncoding$7 = requireCharset_encodings();
@@ -18266,7 +18272,7 @@ class ColumnDefinition {
     for (const t in Types2) {
       typeNames2[Types2[t]] = t;
     }
-    const fiedFlags = field_flags;
+    const fiedFlags = requireField_flags();
     const flagNames2 = [];
     const inspectFlags = this.flags;
     for (const f in fiedFlags) {
@@ -21297,7 +21303,7 @@ let CloseStatement$1 = class CloseStatement2 extends Command$7 {
   }
 };
 var close_statement = CloseStatement$1;
-const FieldFlags$1 = field_flags;
+const FieldFlags$1 = requireField_flags();
 const Charsets$2 = requireCharsets();
 const Types$1 = requireTypes();
 const helpers$1 = helpers$4;
@@ -21486,7 +21492,7 @@ function getBinaryParser$2(fields2, options, config) {
   return parserCache.getParser("binary", fields2, options, config, compile);
 }
 var binary_parser = getBinaryParser$2;
-const FieldFlags = field_flags;
+const FieldFlags = requireField_flags();
 const Charsets$1 = requireCharsets();
 const Types = requireTypes();
 const helpers = helpers$4;
@@ -25899,10 +25905,13 @@ async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       dashboard_id INTEGER NOT NULL,
       chart_id INTEGER NOT NULL,
+      x INTEGER NOT NULL DEFAULT 0,
+      y INTEGER NOT NULL DEFAULT 0,
+      width INTEGER NOT NULL DEFAULT 4,
+      height INTEGER NOT NULL DEFAULT 4,
       FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
       FOREIGN KEY (chart_id) REFERENCES charts(id)
     );
-
   `);
 }
 function getDatabase() {
@@ -26077,10 +26086,30 @@ const queryService = {
 };
 function addChart(chart) {
   const db2 = getDatabase();
-  db2.prepare(`
+  return db2.prepare(`
     INSERT INTO charts (uuid, title, type, config, data)
     VALUES (@uuid, @title, @type, @config, @data)
   `).run(chart);
+}
+function getChartsByDashboardId(dashboardId) {
+  const db2 = getDatabase();
+  const rows = db2.prepare(`
+    SELECT
+      charts.id,
+      charts.uuid,
+      charts.title,
+      charts.type,
+      charts.config,
+      charts.data,
+      dashboard_charts.x,
+      dashboard_charts.y,
+      dashboard_charts.width,
+      dashboard_charts.height
+    FROM charts
+    JOIN dashboard_charts ON charts.id = dashboard_charts.chart_id
+    WHERE dashboard_charts.dashboard_id = ?
+  `).all(dashboardId);
+  return rows;
 }
 const byteToHex = [];
 for (let i = 0; i < 256; ++i) {
@@ -26116,18 +26145,24 @@ function v4(options, buf, offset) {
 const chartService = {
   async saveChart(chartData) {
     try {
-      addChart({
+      const result = addChart({
         uuid: v4(),
         title: chartData.title,
         type: chartData.type,
         config: JSON.stringify(chartData.config),
         data: JSON.stringify(chartData.data)
       });
-      return { success: true, message: "Chart saved locally." };
+      return {
+        success: true,
+        message: "Chart saved locally.",
+        id: result.lastInsertRowid
+        // <- return inserted chart ID
+      };
     } catch (err) {
       return { success: false, message: err.message };
     }
-  }
+  },
+  getChartsByDashboardId
 };
 function getAllDashboards() {
   const db2 = getDatabase();
@@ -26142,11 +26177,9 @@ function addDashboard(name) {
 function linkChartToDashboard(chartId, dashboardId) {
   const db2 = getDatabase();
   db2.prepare(
-    `
-    INSERT INTO dashboard_charts (dashboard_id, chart_id)
-    VALUES (?, ?)
-  `
-  ).run(dashboardId, chartId);
+    `INSERT INTO dashboard_charts (dashboard_id, chart_id, x, y, width, height)
+   VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(dashboardId, chartId, 0, 0, 4, 4);
 }
 const dashboardService = {
   getAllDashboards,
@@ -26204,6 +26237,10 @@ function setupIpcHandlers() {
   ipcMain.handle(
     "link-chart-to-dashboard",
     (_, { chartId, dashboardId }) => dashboardService.linkChartToDashboard(chartId, dashboardId)
+  );
+  ipcMain.handle(
+    "get-dashboard-charts",
+    async (_, dashboardId) => chartService.getChartsByDashboardId(dashboardId)
   );
 }
 function setupAppEvents(createWindowCallback) {

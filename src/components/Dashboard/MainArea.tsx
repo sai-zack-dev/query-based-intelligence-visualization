@@ -1,38 +1,63 @@
-import { useState } from "react";
+import { DashboardChart } from "@/types/chart";
+import { useEffect, useState } from "react";
 import RGL, { WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+import { renderChartTemplate } from "@/components/common/ChartRenderer";
+interface MainAreaProps {
+  isEdit: boolean;
+  dashboardId: number | undefined;
+}
 
-const ReactGridLayout = WidthProvider(RGL);
+const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
+  const ReactGridLayout = WidthProvider(RGL);
+  const [charts, setCharts] = useState<DashboardChart[]>([]);
 
-const initialLayout: Layout[] = [
-  { i: "1", x: 0, y: 0, w: 3, h: 2 },
-  { i: "2", x: 3, y: 0, w: 4, h: 4 },
-  { i: "3", x: 7, y: 2, w: 2, h: 4 },
-];
+  useEffect(() => {
+    if (!dashboardId) return;
+    window.ipcRenderer
+      .invoke("get-dashboard-charts", Number(dashboardId))
+      .then((res) => setCharts(res))
+      .catch((err) => console.error("Failed to load charts", err));
+  }, [dashboardId]);
 
-const MainArea = () => {
-  const [isEdit, setIsEdit] = useState(true);
+  const layout: Layout[] = charts.map((chart) => ({
+    i: chart.id.toString(),
+    x: chart.x,
+    y: chart.y,
+    w: chart.width,
+    h: chart.height,
+  }));
   return (
     <div className="relative overflow-y-auto flex-grow pt-3 px-2">
       <ReactGridLayout
         className="layout"
-        layout={initialLayout}
-        cols={12}
-        rowHeight={30}
-        containerPadding={[0, 0]}
+        layout={layout}
+        cols={10}
+        rowHeight={100}
+        containerPadding={[10, 10]}
         isResizable={isEdit}
         isDraggable={isEdit}
         draggableHandle=".drag-handle"
         useCSSTransforms={true}
       >
-        {initialLayout.map((item) => (
-          <div key={item.i} className="bg-white rounded-lg shadow overflow-hidden">
-            <div className={`bg-blue-100 text-blue-500 text-sm text-center p-1 drag-handle ${isEdit && "cursor-move"}`}>
-              Chart {item.i}
+        {charts.map((chart) => (
+          <div
+            key={chart.id}
+            className="bg-white rounded-lg shadow overflow-hidden border border-blue-300"
+          >
+            <div
+              className={`bg-blue-100 text-blue-500 font-bold text-sm text-center p-2 drag-handle ${
+                isEdit && "cursor-move"
+              }`}
+            >
+              {chart.title}
             </div>
-            <div className="p-2">Chart content here...</div>
-            <button onClick={() => setIsEdit(!isEdit)}>Toggle</button>
+            {renderChartTemplate(chart)}
+            <p>
+            {/* {chart.config} */}
+
+            </p>
           </div>
         ))}
       </ReactGridLayout>
