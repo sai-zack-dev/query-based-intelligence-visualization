@@ -30,7 +30,7 @@ const ChartGenerationPage: React.FC<SidebarData> = ({
 
       const generatedLines = uniqueSeries.map((room) => ({
         dataKey: room,
-        stroke: generateRandomColor(),
+        color: generateRandomColor(),
         active: true,
       }));
 

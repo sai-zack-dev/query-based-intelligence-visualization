@@ -1,11 +1,12 @@
 import { ChartName } from "@/data/chartMeta";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { groupBy } from "lodash";
+import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 
 export type ChartTab = "type" | "config" | "info";
 
 export interface LineConfig {
   dataKey: string;
-  stroke: string;
+  color: string;
   active: boolean;
 }
 
@@ -30,6 +31,8 @@ interface ChartContextType {
 
   seriesKey: string;
   setSeriesKey: (key: string) => void;
+
+  chartData: any[];
 }
 
 const ChartContext = createContext<ChartContextType | undefined>(undefined);
@@ -46,6 +49,27 @@ export const ChartProvider = ({ children }: { children: ReactNode }) => {
   const [yKey, setYKey] = useState<string>("Revenue");
 
   const [seriesKey, setSeriesKey] = useState<string>("Room_Type");
+
+  const chartData = useMemo(() => {
+    if (!resultData || resultData.length === 0 || !xKey || !yKey || !seriesKey)
+      return [];
+
+    const grouped = groupBy(resultData, (item) => item[xKey]);
+
+    return Object.entries(grouped).map(([xVal, records]) => {
+      const row: Record<string, any> = { [xKey]: xVal };
+
+      for (const record of records) {
+        const seriesValue = record[seriesKey];
+        const yVal = parseFloat(record[yKey]);
+        if (seriesValue && !isNaN(yVal)) {
+          row[seriesValue] = yVal;
+        }
+      }
+
+      return row;
+    });
+  }, [resultData, xKey, yKey, seriesKey]);
 
   return (
     <ChartContext.Provider
@@ -66,6 +90,7 @@ export const ChartProvider = ({ children }: { children: ReactNode }) => {
         setYKey,
         seriesKey,
         setSeriesKey,
+        chartData
       }}
     >
       {children}

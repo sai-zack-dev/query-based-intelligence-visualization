@@ -12,7 +12,7 @@ import require$$1$2 from "timers";
 import require$$2$1 from "stream";
 import require$$0$1 from "buffer";
 import require$$1$1 from "string_decoder";
-import require$$0$2 from "crypto";
+import require$$0$2, { randomFillSync, randomUUID } from "crypto";
 import require$$0$5 from "zlib";
 import require$$1$3 from "util";
 import require$$0$6 from "url";
@@ -25790,15 +25790,14 @@ class ConnectionManager {
       });
       this.activeConnection = connection2;
       this.activeConnectionMeta = {
-        id: Date.now(),
-        name: conn.name ?? "Untitled",
-        type: "mysql",
+        id: conn.id,
+        name: conn.name,
+        type: conn.type,
         host: conn.host ?? null,
         port: conn.port ? parseInt(conn.port) : null,
         file: null,
         date: (/* @__PURE__ */ new Date()).toISOString()
       };
-      console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
       return { success: true };
     } catch (err) {
       return { success: false, message: err.message };
@@ -25865,30 +25864,66 @@ class ConnectionManager {
 }
 const connectionManager = new ConnectionManager();
 let db = null;
-function getDbPath() {
-  if (!app.isReady()) {
-    throw new Error("Cannot access userData path before app is ready");
-  }
-  const p = path.join(app.getPath("userData"), "connections.db");
-  console.log("Using SQLite path:", p);
-  return p;
+async function initDatabase() {
+  const dbPath = path.join(app.getPath("userData"), "test.db");
+  console.log("Using SQLite path:", dbPath);
+  db = new Database(dbPath);
+  console.log("Db path:", dbPath);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS connections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      host TEXT,
+      port TEXT,
+      username TEXT,
+      database TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS charts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL,
+      title TEXT NOT NULL,
+      type TEXT NOT NULL,
+      config TEXT,
+      data TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS dashboards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS dashboard_charts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dashboard_id INTEGER NOT NULL,
+      chart_id INTEGER NOT NULL,
+      x INTEGER NOT NULL DEFAULT 0,
+      y INTEGER NOT NULL DEFAULT 0,
+      width INTEGER NOT NULL DEFAULT 4,
+      height INTEGER NOT NULL DEFAULT 4,
+      FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
+      FOREIGN KEY (chart_id) REFERENCES charts(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS queries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sql TEXT NOT NULL,
+      connection_id INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (connection_id) REFERENCES connections(id)
+    );
+  `);
 }
 function getDatabase() {
-  if (!db) {
-    const dbPath = getDbPath();
-    db = new Database(dbPath);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS connections (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        host TEXT,
-        port TEXT,
-        username TEXT,
-        database TEXT
-      );
-    `);
-  }
+  if (!db)
+    throw new Error(
+      "Database not initialized. Call initDatabase() after app is ready."
+    );
   return db;
 }
 function getAllConnections() {
@@ -25897,10 +25932,11 @@ function getAllConnections() {
 }
 function addConnection(conn) {
   const db2 = getDatabase();
-  db2.prepare(`
+  const result = db2.prepare(`
     INSERT INTO connections (name, type, host, port, username, database)
     VALUES (@name, @type, @host, @port, @username, @database)
   `).run(conn);
+  return result.lastInsertRowid;
 }
 function findConnectionByName(name) {
   const db2 = getDatabase();
@@ -25944,19 +25980,33 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
-          missingFields: validation.missingFields
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`
         };
       }
       const nameMatch = findConnectionByName(conn.name);
-      const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
       if (nameMatch) {
-        return { conflict: "name", existing: nameMatch };
-      } else if (configMatch) {
-        return { conflict: "config", existing: configMatch };
+        const isSame = nameMatch.host === conn.host && nameMatch.port === conn.port;
+        if (!isSame) {
+          return { conflict: "name", existing: nameMatch };
+        } else {
+          return {
+            success: true,
+            id: nameMatch.id
+            // ✅ return existing ID to avoid re-creating
+          };
+        }
       }
-      addConnection(conn);
-      return { success: true };
+      const configMatch = findConnectionByConfig(
+        conn.host,
+        conn.port,
+        conn.username
+      );
+      if (nameMatch) return { conflict: "name", existing: nameMatch };
+      if (configMatch) return { conflict: "config", existing: configMatch };
+      const newId = addConnection(conn);
+      return { success: true, id: newId };
     } catch (err) {
       console.error("Failed to save connection:", err);
       return { success: false, message: err.message || "Unknown error" };
@@ -25968,7 +26018,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -25985,7 +26037,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -26007,7 +26061,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -26041,50 +26097,255 @@ class ConnectionService {
   }
 }
 const connectionService = new ConnectionService();
-function setupIpcHandlers() {
-  ipcMain.handle("test-mysql-connection", async (_, config) => {
-    return await connectionManager.testConnection(config);
-  });
-  ipcMain.handle("save-connection", async (_, conn) => {
-    return await connectionService.saveConnection(conn);
-  });
-  ipcMain.handle("update-connection-by-name", async (_, conn) => {
-    return await connectionService.updateConnectionByName(conn);
-  });
-  ipcMain.handle("update-connection-name-by-config", async (_, payload) => {
-    return await connectionService.updateConnectionNameByConfig(payload);
-  });
-  ipcMain.handle("force-create-connection", async (_, conn) => {
-    return await connectionService.forceCreateConnection(conn);
-  });
-  ipcMain.handle("get-connections", () => {
-    return connectionService.getConnections();
-  });
-  ipcMain.handle("connect-to-database", async (_, conn) => {
-    return await connectionManager.connectToDatabase(conn);
-  });
-  ipcMain.handle("disconnect-database", async () => {
-    return await connectionManager.disconnect();
-  });
-  ipcMain.handle("get-active-connection-meta", async () => {
-    return connectionManager.getActiveConnectionMeta();
-  });
-  ipcMain.handle("get-database-explorer-data", async () => {
-    return await connectionManager.getDatabaseExplorerData();
-  });
-  ipcMain.handle(
-    "run-sql-query",
-    async (_, payload) => {
-      try {
-        const conn = connectionManager.getActiveConnection();
-        if (!conn) return { success: false, message: "No DB connected" };
-        await conn.query(`USE \`${payload.database}\``);
-        const [rows] = await conn.query(payload.query);
-        return { success: true, data: rows };
-      } catch (err) {
-        return { success: false, message: err.message };
-      }
+const byteToHex = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 256).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+}
+const rnds8Pool = new Uint8Array(256);
+let poolPtr = rnds8Pool.length;
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    randomFillSync(rnds8Pool);
+    poolPtr = 0;
+  }
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+const native = { randomUUID };
+function v4(options, buf, offset) {
+  var _a;
+  if (native.randomUUID && true && !options) {
+    return native.randomUUID();
+  }
+  options = options || {};
+  const rnds = options.random ?? ((_a = options.rng) == null ? void 0 : _a.call(options)) ?? rng();
+  if (rnds.length < 16) {
+    throw new Error("Random bytes length must be >= 16");
+  }
+  rnds[6] = rnds[6] & 15 | 64;
+  rnds[8] = rnds[8] & 63 | 128;
+  return unsafeStringify(rnds);
+}
+function addQuery(query2) {
+  const db2 = getDatabase();
+  const uuid = v4();
+  db2.prepare(`
+    INSERT INTO queries (uuid, name, description, sql, connection_id)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(uuid, query2.name, query2.description, query2.sql, query2.connection_id ?? null);
+  return uuid;
+}
+function getAllQueries() {
+  const db2 = getDatabase();
+  return db2.prepare(`SELECT * FROM queries ORDER BY created_at DESC`).all();
+}
+function getQueryById(id) {
+  const db2 = getDatabase();
+  return db2.prepare(`SELECT * FROM queries WHERE id = ?`).get(id);
+}
+function deleteQueryById(id) {
+  const db2 = getDatabase();
+  const result = db2.prepare(`DELETE FROM queries WHERE id = ?`).run(id);
+  return result.changes > 0;
+}
+const queryService = {
+  async runSQL(payload) {
+    try {
+      const conn = connectionManager.getActiveConnection();
+      if (!conn) return { success: false, message: "No DB connected" };
+      await conn.query(`USE \`${payload.database}\``);
+      const [rows] = await conn.query(payload.query);
+      return { success: true, data: rows };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
+  },
+  async saveQuery(query2) {
+    var _a, _b;
+    try {
+      if (!query2.name || !query2.sql) {
+        return { success: false };
+      }
+      const connection2 = await connectionManager.getActiveConnectionMeta();
+      console.log("Active connection meta:", connection2);
+      const connectionId = (_a = connection2 == null ? void 0 : connection2.meta) == null ? void 0 : _a.id;
+      console.log("ID being inserted into queries:", (_b = connection2 == null ? void 0 : connection2.meta) == null ? void 0 : _b.id);
+      const uuid = addQuery({
+        name: query2.name,
+        description: query2.description,
+        sql: query2.sql,
+        connection_id: Number(connectionId)
+      });
+      return { success: true, uuid };
+    } catch (err) {
+      console.error("Failed to save query:", err);
+      return { success: false, message: err.message };
+    }
+  },
+  getAllQueries() {
+    try {
+      return getAllQueries();
+    } catch (err) {
+      console.error("Failed to get saved queries:", err);
+      return [];
+    }
+  },
+  getQueryById(id) {
+    try {
+      return getQueryById(id);
+    } catch (err) {
+      console.error("Failed to get query:", err);
+      return null;
+    }
+  },
+  deleteQueryById(id) {
+    try {
+      const success = deleteQueryById(id);
+      return { success };
+    } catch (err) {
+      console.error("Failed to delete query:", err);
+      return { success: false };
+    }
+  }
+};
+function addChart(chart) {
+  const db2 = getDatabase();
+  return db2.prepare(`
+    INSERT INTO charts (uuid, title, type, config, data)
+    VALUES (@uuid, @title, @type, @config, @data)
+  `).run(chart);
+}
+function getChartsByDashboardId(dashboardId) {
+  const db2 = getDatabase();
+  const rows = db2.prepare(`
+    SELECT
+      charts.id,
+      charts.uuid,
+      charts.title,
+      charts.type,
+      charts.config,
+      charts.data,
+      dashboard_charts.x,
+      dashboard_charts.y,
+      dashboard_charts.width,
+      dashboard_charts.height
+    FROM charts
+    JOIN dashboard_charts ON charts.id = dashboard_charts.chart_id
+    WHERE dashboard_charts.dashboard_id = ?
+  `).all(dashboardId);
+  return rows;
+}
+const chartService = {
+  async saveChart(chartData) {
+    try {
+      const result = addChart({
+        uuid: v4(),
+        title: chartData.title,
+        type: chartData.type,
+        config: JSON.stringify(chartData.config),
+        data: JSON.stringify(chartData.data)
+      });
+      return {
+        success: true,
+        message: "Chart saved locally.",
+        id: result.lastInsertRowid
+        // <- return inserted chart ID
+      };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  },
+  getChartsByDashboardId
+};
+function getAllDashboards() {
+  const db2 = getDatabase();
+  return db2.prepare("SELECT * FROM dashboards").all();
+}
+function addDashboard(name) {
+  const db2 = getDatabase();
+  const uuid = v4();
+  const result = db2.prepare("INSERT INTO dashboards (uuid, name) VALUES (?, ?)").run(uuid, name);
+  return { id: Number(result.lastInsertRowid), uuid };
+}
+function linkChartToDashboard(chartId, dashboardId) {
+  const db2 = getDatabase();
+  db2.prepare(
+    `INSERT INTO dashboard_charts (dashboard_id, chart_id, x, y, width, height)
+   VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(dashboardId, chartId, 0, 0, 4, 4);
+}
+const dashboardService = {
+  getAllDashboards,
+  createDashboard(name) {
+    const { id } = addDashboard(name);
+    return id;
+  },
+  linkChartToDashboard
+};
+function setupIpcHandlers() {
+  ipcMain.handle(
+    "test-mysql-connection",
+    (_, config) => connectionManager.testConnection(config)
+  );
+  ipcMain.handle(
+    "save-connection",
+    (_, conn) => connectionService.saveConnection(conn)
+  );
+  ipcMain.handle(
+    "update-connection-by-name",
+    (_, conn) => connectionService.updateConnectionByName(conn)
+  );
+  ipcMain.handle(
+    "update-connection-name-by-config",
+    (_, payload) => connectionService.updateConnectionNameByConfig(payload)
+  );
+  ipcMain.handle(
+    "force-create-connection",
+    (_, conn) => connectionService.forceCreateConnection(conn)
+  );
+  ipcMain.handle("get-connections", () => connectionService.getConnections());
+  ipcMain.handle(
+    "connect-to-database",
+    (_, conn) => connectionManager.connectToDatabase(conn)
+  );
+  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
+  ipcMain.handle(
+    "get-active-connection-meta",
+    () => connectionManager.getActiveConnectionMeta()
+  );
+  ipcMain.handle(
+    "get-database-explorer-data",
+    () => connectionManager.getDatabaseExplorerData()
+  );
+  ipcMain.handle("run-sql-query", (_, payload) => queryService.runSQL(payload));
+  ipcMain.handle(
+    "save-chart",
+    (_, chartData) => chartService.saveChart(chartData)
+  );
+  ipcMain.handle("get-dashboards", () => dashboardService.getAllDashboards());
+  ipcMain.handle(
+    "create-dashboard",
+    (_, name) => dashboardService.createDashboard(name)
+  );
+  ipcMain.handle(
+    "link-chart-to-dashboard",
+    (_, { chartId, dashboardId }) => dashboardService.linkChartToDashboard(chartId, dashboardId)
+  );
+  ipcMain.handle(
+    "get-dashboard-charts",
+    async (_, dashboardId) => chartService.getChartsByDashboardId(dashboardId)
+  );
+  ipcMain.handle("save-query", (_, query2) => queryService.saveQuery(query2));
+  ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
+  ipcMain.handle(
+    "delete-query",
+    (_, id) => queryService.deleteQueryById(id)
+  );
+  ipcMain.handle(
+    "get-query-by-id",
+    (_, id) => queryService.getQueryById(id)
   );
 }
 function setupAppEvents(createWindowCallback) {
@@ -26108,7 +26369,8 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let mainWindow = null;
-function initializeApp() {
+async function initializeApp() {
+  await initDatabase();
   mainWindow = createMainWindow();
   setupIpcHandlers();
   setupAppEvents(() => createMainWindow());

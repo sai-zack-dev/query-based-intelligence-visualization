@@ -21,7 +21,7 @@ export const QueryTools = () => {
           onTabChange={(tabId) => setActiveTab(tabId as "ai" | "manual")}
         />
       </div>
-      { "Selected Database: " + selectedDatabase }
+      {/* { "Selected Database: " + selectedDatabase } */}
       {/* Render based on selected tab */}
       {activeTab === "ai" && <AiPanel />}
       {activeTab === "manual" && <ManualPanel selectedDatabase={selectedDatabase} />}

@@ -15,7 +15,7 @@ const ResultSection: React.FC<ResultSectionProps> = ({
   if (loading) return <p className="text-sm text-gray-500">Running query…</p>;
   if (error) return <p className="text-sm text-red-500">Error: {error}</p>;
   if (!data || data.length === 0)
-    return <p className="text-sm text-gray-500">No results found.</p>;
+    return;
 
   return (
     <div className="border rounded-lg mt-2 overflow-x-auto">

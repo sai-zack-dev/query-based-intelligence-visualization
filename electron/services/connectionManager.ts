@@ -1,3 +1,4 @@
+// electron/services/connectionManager.ts
 import mysql from "mysql2/promise";
 import type { ConnectionData } from "@/types/connection";
 
@@ -49,16 +50,16 @@ class ConnectionManager {
 
       this.activeConnection = connection;
       this.activeConnectionMeta = {
-        id: Date.now(),
-        name: conn.name ?? "Untitled",
-        type: "mysql",
+        id: conn.id,
+        name: conn.name,
+        type: conn.type,
         host: conn.host ?? null,
         port: conn.port ? parseInt(conn.port) : null,
         file: null,
         date: new Date().toISOString(),
       };
 
-      console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
+      // console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };
