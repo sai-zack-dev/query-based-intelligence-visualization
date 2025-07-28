@@ -10,3 +10,9 @@ export interface DashboardChart {
   width: number;
   height: number;
 }
+
+export interface BarChartConfig {
+  dataKey: string;
+  color: string;
+  active: boolean;
+}

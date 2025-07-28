@@ -29,7 +29,7 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
     h: chart.height,
   }));
   return (
-    <div className="relative overflow-y-auto flex-grow pt-3 px-2">
+    <div className="relative overflow-y-auto flex-grow pt-3 px-2 max-h-dvh">
       <ReactGridLayout
         className="layout"
         layout={layout}
@@ -54,10 +54,7 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
               {chart.title}
             </div>
             {renderChartTemplate(chart)}
-            <p>
-            {/* {chart.config} */}
-
-            </p>
+            <p>{/* {chart.config} */}</p>
           </div>
         ))}
       </ReactGridLayout>

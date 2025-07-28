@@ -5,15 +5,19 @@ import { Link } from "react-router-dom";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { CheckIcon, PlusIcon } from "lucide-react";
+import { FaPencil } from "react-icons/fa6";
+import { FaTrash } from "react-icons/fa";
 
 interface ListAreaProps extends SidebarData {
   setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
+  dashboardId: number | undefined;
 }
 
 export const ListArea: React.FC<ListAreaProps> = ({
   sidebarActive,
   toggleSidebar,
-  setIsEdit
+  setIsEdit,
+  dashboardId,
 }) => {
   const [dashboards, setDashboards] = useState<{ id: number; name: string }[]>(
     []
@@ -60,10 +64,11 @@ export const ListArea: React.FC<ListAreaProps> = ({
     setNewName("");
     setCreatingNew(false);
   };
+
   return (
     <div className="pt-6">
       <Link to="/" className={sidebarNav}>
-        <img src="./logo.png" alt="QBIV Logo" className="w-6 h-6" />
+        <img src="../logo.png" alt="QBIV Logo" className="w-6 h-6" />
         {sidebarActive && (
           <span className="font-bold text-lg text-blue-500">QBIV</span>
         )}
@@ -76,8 +81,8 @@ export const ListArea: React.FC<ListAreaProps> = ({
           <h2 className="font-semibold text-gray-800">Dashboards</h2>
         </div>
         {/* Dashboard List */}
-        <div className="flex flex-col justify-between items-between min-h-30">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col justify-between items-between min-h-30 pl-10">
+          <div className="flex flex-col gap-1 pb-5">
             {dashboards.length === 0 ? (
               <p className="text-sm text-gray-400 px-3 py-2 italic text-center">
                 No dashboards found
@@ -87,41 +92,42 @@ export const ListArea: React.FC<ListAreaProps> = ({
                 <Link
                   key={dashboard.id}
                   to={`/dashboard/${dashboard.id}`}
-                  className="px-3 py-2 rounded-md text-sm hover:bg-blue-50 text-gray-700"
+                  className={`px-3 py-2 rounded-md text-sm hover:bg-blue-50 text-gray-700 ${
+                    dashboardId === dashboard.id &&
+                    "bg-blue-100 text-blue-600 font-semibold"
+                  }`}
                 >
                   {dashboard.name}
                 </Link>
               ))
             )}
           </div>
-          {creatingNew && (
-            <div className="flex items-center gap-2">
+          {creatingNew ? (
+            <>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="New dashboard name"
               />
-            </div>
-          )}
-          {creatingNew ? (
-            <div className="flex gap-3">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 cursor-pointer"
-                onClick={() => setCreatingNew(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="bg-green-500 hover:bg-green-600 text-white cursor-pointer hover:text-white flex-1"
-                onClick={handleCreateDashboard}
-              >
-                Save
-              </Button>
-            </div>
+              <div className="flex gap-3 pt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 cursor-pointer"
+                  onClick={() => setCreatingNew(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-green-500 hover:bg-green-600 text-white cursor-pointer hover:text-white flex-1"
+                  onClick={handleCreateDashboard}
+                >
+                  Confirm
+                </Button>
+              </div>
+            </>
           ) : (
             <Button
               size="sm"
@@ -132,14 +138,14 @@ export const ListArea: React.FC<ListAreaProps> = ({
               <PlusIcon className="mr-2 w-4 h-4" /> Add new dashboard
             </Button>
           )}
-          <Button
-              size="sm"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => setIsEdit((prev) => !prev)}
-            >
-              Toggle Edit
-            </Button>
+          {/* <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-2"
+            onClick={() => setIsEdit((prev) => !prev)}
+          >
+            Toggle Edit
+          </Button> */}
         </div>
       </div>
 
@@ -156,6 +162,17 @@ export const ListArea: React.FC<ListAreaProps> = ({
           <RiSidebarUnfoldLine size={16} />
         )}
       </button>
+
+      <div className="flex flex-col items-center gap-2 p-3">
+        <button className="btn-primary w-full text-sm">
+          <FaPencil className="mr-2" />
+          {sidebarActive && "Edit"}
+        </button>
+        <button className="btn-primary w-full text-sm">
+          <FaTrash className="mr-2" />
+          {sidebarActive && "Delete"}
+        </button>
+      </div>
     </div>
   );
 };
