@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useActiveConnection } from "@/hooks/useActiveConnection";
 import { useRunQuery } from "@/hooks/useRunQuery";
 import SelectSection from "@/components/QueryBuilder/main/manual/SelectSection";
@@ -17,6 +16,7 @@ import {
   Filter,
   OrderByItem,
 } from "@/types/querybuilder";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 interface ManualPanelProps {
   selectedDatabase: string | null;
@@ -25,6 +25,7 @@ interface ManualPanelProps {
 export const ManualPanel: React.FC<ManualPanelProps> = ({
   selectedDatabase,
 }) => {
+  const { sql, setSql } = useQueryBuilderContext();
   const [selectAll, setSelectAll] = useState<boolean>(true);
   const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>(
     []
@@ -129,6 +130,7 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
   const handleRunQuery = () => {
     if (!selectedDatabase) return;
     const sql = generateSQL();
+    setSql(sql);
     runQuery(selectedDatabase, sql);
   };
 

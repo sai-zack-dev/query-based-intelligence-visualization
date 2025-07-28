@@ -133,6 +133,7 @@ export const useConnectionForm = (
         password: formData.password,
         database: formData.database,
         name: formData.name,
+        type: connectionType,
       };
 
       const savePayload = {
@@ -144,7 +145,7 @@ export const useConnectionForm = (
         database: formData.database,
       };
 
-      // 1. Test Connection
+      // 1. Test connection
       const response = await window.ipcRenderer.invoke(
         "test-mysql-connection",
         connectionPayload
@@ -157,16 +158,22 @@ export const useConnectionForm = (
         return;
       }
 
-      // 2. Save Connection
+      // 2. Save connection (should return connection ID)
       const saveResponse = await window.ipcRenderer.invoke(
         "save-connection",
         savePayload
       );
 
+      // 👇 Correct: merge ID into connectionPayload
+      const fullConnection = {
+        ...connectionPayload,
+        id: saveResponse.id, // ⚠️ Make sure your save-connection handler returns { success: true, id: number }
+      };
+
       const connectAndNavigate = async (successMessage: string) => {
         const connectResponse = await window.ipcRenderer.invoke(
           "connect-to-database",
-          connectionPayload
+          fullConnection
         );
         if (!connectResponse.success) {
           setStatus({ type: "error", message: connectResponse.message });
@@ -177,7 +184,7 @@ export const useConnectionForm = (
         setTimeout(() => navigate("/query"), 800);
       };
 
-      // 3. Default save success
+      // 3. Success case
       if (saveResponse.success) {
         await connectAndNavigate("Connected!");
         return;
@@ -226,7 +233,26 @@ export const useConnectionForm = (
                 savePayload
               );
               if (forceResponse.success) {
-                await connectAndNavigate("New connection created!");
+                const fullForcedConnection = {
+                  ...connectionPayload,
+                  id: forceResponse.id, // again, forceCreateConnection should return id
+                };
+                const connectResponse = await window.ipcRenderer.invoke(
+                  "connect-to-database",
+                  fullForcedConnection
+                );
+                if (!connectResponse.success) {
+                  setStatus({
+                    type: "error",
+                    message: connectResponse.message || "Failed to connect.",
+                  });
+                } else {
+                  setStatus({
+                    type: "success",
+                    message: "New connection created!",
+                  });
+                  setTimeout(() => navigate("/query"), 800);
+                }
               } else {
                 setStatus({
                   type: "error",

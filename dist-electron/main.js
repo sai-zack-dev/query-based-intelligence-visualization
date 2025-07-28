@@ -18188,27 +18188,21 @@ let CloseStatement$2 = class CloseStatement {
 };
 var close_statement$1 = CloseStatement$2;
 var field_flags = {};
-var hasRequiredField_flags;
-function requireField_flags() {
-  if (hasRequiredField_flags) return field_flags;
-  hasRequiredField_flags = 1;
-  field_flags.NOT_NULL = 1;
-  field_flags.PRI_KEY = 2;
-  field_flags.UNIQUE_KEY = 4;
-  field_flags.MULTIPLE_KEY = 8;
-  field_flags.BLOB = 16;
-  field_flags.UNSIGNED = 32;
-  field_flags.ZEROFILL = 64;
-  field_flags.BINARY = 128;
-  field_flags.ENUM = 256;
-  field_flags.AUTO_INCREMENT = 512;
-  field_flags.TIMESTAMP = 1024;
-  field_flags.SET = 2048;
-  field_flags.NO_DEFAULT_VALUE = 4096;
-  field_flags.ON_UPDATE_NOW = 8192;
-  field_flags.NUM = 32768;
-  return field_flags;
-}
+field_flags.NOT_NULL = 1;
+field_flags.PRI_KEY = 2;
+field_flags.UNIQUE_KEY = 4;
+field_flags.MULTIPLE_KEY = 8;
+field_flags.BLOB = 16;
+field_flags.UNSIGNED = 32;
+field_flags.ZEROFILL = 64;
+field_flags.BINARY = 128;
+field_flags.ENUM = 256;
+field_flags.AUTO_INCREMENT = 512;
+field_flags.TIMESTAMP = 1024;
+field_flags.SET = 2048;
+field_flags.NO_DEFAULT_VALUE = 4096;
+field_flags.ON_UPDATE_NOW = 8192;
+field_flags.NUM = 32768;
 const Packet$b = packet;
 const StringParser$2 = string;
 const CharsetToEncoding$7 = requireCharset_encodings();
@@ -18272,7 +18266,7 @@ class ColumnDefinition {
     for (const t in Types2) {
       typeNames2[Types2[t]] = t;
     }
-    const fiedFlags = requireField_flags();
+    const fiedFlags = field_flags;
     const flagNames2 = [];
     const inspectFlags = this.flags;
     for (const f in fiedFlags) {
@@ -21303,7 +21297,7 @@ let CloseStatement$1 = class CloseStatement2 extends Command$7 {
   }
 };
 var close_statement = CloseStatement$1;
-const FieldFlags$1 = requireField_flags();
+const FieldFlags$1 = field_flags;
 const Charsets$2 = requireCharsets();
 const Types$1 = requireTypes();
 const helpers$1 = helpers$4;
@@ -21492,7 +21486,7 @@ function getBinaryParser$2(fields2, options, config) {
   return parserCache.getParser("binary", fields2, options, config, compile);
 }
 var binary_parser = getBinaryParser$2;
-const FieldFlags = requireField_flags();
+const FieldFlags = field_flags;
 const Charsets$1 = requireCharsets();
 const Types = requireTypes();
 const helpers = helpers$4;
@@ -25796,9 +25790,9 @@ class ConnectionManager {
       });
       this.activeConnection = connection2;
       this.activeConnectionMeta = {
-        id: Date.now(),
-        name: conn.name ?? "Untitled",
-        type: "mysql",
+        id: conn.id,
+        name: conn.name,
+        type: conn.type,
         host: conn.host ?? null,
         port: conn.port ? parseInt(conn.port) : null,
         file: null,
@@ -25912,6 +25906,17 @@ async function initDatabase() {
       FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
       FOREIGN KEY (chart_id) REFERENCES charts(id)
     );
+
+    CREATE TABLE IF NOT EXISTS queries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sql TEXT NOT NULL,
+      connection_id INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (connection_id) REFERENCES connections(id)
+    );
   `);
 }
 function getDatabase() {
@@ -25927,10 +25932,11 @@ function getAllConnections() {
 }
 function addConnection(conn) {
   const db2 = getDatabase();
-  db2.prepare(`
+  const result = db2.prepare(`
     INSERT INTO connections (name, type, host, port, username, database)
     VALUES (@name, @type, @host, @port, @username, @database)
   `).run(conn);
+  return result.lastInsertRowid;
 }
 function findConnectionByName(name) {
   const db2 = getDatabase();
@@ -25974,19 +25980,33 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
-          missingFields: validation.missingFields
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`
         };
       }
       const nameMatch = findConnectionByName(conn.name);
-      const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
       if (nameMatch) {
-        return { conflict: "name", existing: nameMatch };
-      } else if (configMatch) {
-        return { conflict: "config", existing: configMatch };
+        const isSame = nameMatch.host === conn.host && nameMatch.port === conn.port;
+        if (!isSame) {
+          return { conflict: "name", existing: nameMatch };
+        } else {
+          return {
+            success: true,
+            id: nameMatch.id
+            // ✅ return existing ID to avoid re-creating
+          };
+        }
       }
-      addConnection(conn);
-      return { success: true };
+      const configMatch = findConnectionByConfig(
+        conn.host,
+        conn.port,
+        conn.username
+      );
+      if (nameMatch) return { conflict: "name", existing: nameMatch };
+      if (configMatch) return { conflict: "config", existing: configMatch };
+      const newId = addConnection(conn);
+      return { success: true, id: newId };
     } catch (err) {
       console.error("Failed to save connection:", err);
       return { success: false, message: err.message || "Unknown error" };
@@ -25998,7 +26018,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -26015,7 +26037,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -26037,7 +26061,9 @@ class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields
         };
       }
@@ -26071,46 +26097,6 @@ class ConnectionService {
   }
 }
 const connectionService = new ConnectionService();
-const queryService = {
-  async runSQL(payload) {
-    try {
-      const conn = connectionManager.getActiveConnection();
-      if (!conn) return { success: false, message: "No DB connected" };
-      await conn.query(`USE \`${payload.database}\``);
-      const [rows] = await conn.query(payload.query);
-      return { success: true, data: rows };
-    } catch (err) {
-      return { success: false, message: err.message };
-    }
-  }
-};
-function addChart(chart) {
-  const db2 = getDatabase();
-  return db2.prepare(`
-    INSERT INTO charts (uuid, title, type, config, data)
-    VALUES (@uuid, @title, @type, @config, @data)
-  `).run(chart);
-}
-function getChartsByDashboardId(dashboardId) {
-  const db2 = getDatabase();
-  const rows = db2.prepare(`
-    SELECT
-      charts.id,
-      charts.uuid,
-      charts.title,
-      charts.type,
-      charts.config,
-      charts.data,
-      dashboard_charts.x,
-      dashboard_charts.y,
-      dashboard_charts.width,
-      dashboard_charts.height
-    FROM charts
-    JOIN dashboard_charts ON charts.id = dashboard_charts.chart_id
-    WHERE dashboard_charts.dashboard_id = ?
-  `).all(dashboardId);
-  return rows;
-}
 const byteToHex = [];
 for (let i = 0; i < 256; ++i) {
   byteToHex.push((i + 256).toString(16).slice(1));
@@ -26141,6 +26127,115 @@ function v4(options, buf, offset) {
   rnds[6] = rnds[6] & 15 | 64;
   rnds[8] = rnds[8] & 63 | 128;
   return unsafeStringify(rnds);
+}
+function addQuery(query2) {
+  const db2 = getDatabase();
+  const uuid = v4();
+  db2.prepare(`
+    INSERT INTO queries (uuid, name, description, sql, connection_id)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(uuid, query2.name, query2.description, query2.sql, query2.connection_id ?? null);
+  return uuid;
+}
+function getAllQueries() {
+  const db2 = getDatabase();
+  return db2.prepare(`SELECT * FROM queries ORDER BY created_at DESC`).all();
+}
+function getQueryById(id) {
+  const db2 = getDatabase();
+  return db2.prepare(`SELECT * FROM queries WHERE id = ?`).get(id);
+}
+function deleteQueryById(id) {
+  const db2 = getDatabase();
+  const result = db2.prepare(`DELETE FROM queries WHERE id = ?`).run(id);
+  return result.changes > 0;
+}
+const queryService = {
+  async runSQL(payload) {
+    try {
+      const conn = connectionManager.getActiveConnection();
+      if (!conn) return { success: false, message: "No DB connected" };
+      await conn.query(`USE \`${payload.database}\``);
+      const [rows] = await conn.query(payload.query);
+      return { success: true, data: rows };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  },
+  async saveQuery(query2) {
+    var _a, _b;
+    try {
+      if (!query2.name || !query2.sql) {
+        return { success: false };
+      }
+      const connection2 = await connectionManager.getActiveConnectionMeta();
+      console.log("Active connection meta:", connection2);
+      const connectionId = (_a = connection2 == null ? void 0 : connection2.meta) == null ? void 0 : _a.id;
+      console.log("ID being inserted into queries:", (_b = connection2 == null ? void 0 : connection2.meta) == null ? void 0 : _b.id);
+      const uuid = addQuery({
+        name: query2.name,
+        description: query2.description,
+        sql: query2.sql,
+        connection_id: Number(connectionId)
+      });
+      return { success: true, uuid };
+    } catch (err) {
+      console.error("Failed to save query:", err);
+      return { success: false, message: err.message };
+    }
+  },
+  getAllQueries() {
+    try {
+      return getAllQueries();
+    } catch (err) {
+      console.error("Failed to get saved queries:", err);
+      return [];
+    }
+  },
+  getQueryById(id) {
+    try {
+      return getQueryById(id);
+    } catch (err) {
+      console.error("Failed to get query:", err);
+      return null;
+    }
+  },
+  deleteQueryById(id) {
+    try {
+      const success = deleteQueryById(id);
+      return { success };
+    } catch (err) {
+      console.error("Failed to delete query:", err);
+      return { success: false };
+    }
+  }
+};
+function addChart(chart) {
+  const db2 = getDatabase();
+  return db2.prepare(`
+    INSERT INTO charts (uuid, title, type, config, data)
+    VALUES (@uuid, @title, @type, @config, @data)
+  `).run(chart);
+}
+function getChartsByDashboardId(dashboardId) {
+  const db2 = getDatabase();
+  const rows = db2.prepare(`
+    SELECT
+      charts.id,
+      charts.uuid,
+      charts.title,
+      charts.type,
+      charts.config,
+      charts.data,
+      dashboard_charts.x,
+      dashboard_charts.y,
+      dashboard_charts.width,
+      dashboard_charts.height
+    FROM charts
+    JOIN dashboard_charts ON charts.id = dashboard_charts.chart_id
+    WHERE dashboard_charts.dashboard_id = ?
+  `).all(dashboardId);
+  return rows;
 }
 const chartService = {
   async saveChart(chartData) {
@@ -26241,6 +26336,16 @@ function setupIpcHandlers() {
   ipcMain.handle(
     "get-dashboard-charts",
     async (_, dashboardId) => chartService.getChartsByDashboardId(dashboardId)
+  );
+  ipcMain.handle("save-query", (_, query2) => queryService.saveQuery(query2));
+  ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
+  ipcMain.handle(
+    "delete-query",
+    (_, id) => queryService.deleteQueryById(id)
+  );
+  ipcMain.handle(
+    "get-query-by-id",
+    (_, id) => queryService.getQueryById(id)
   );
 }
 function setupAppEvents(createWindowCallback) {

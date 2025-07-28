@@ -16,11 +16,11 @@ const sidebarTabs = [
     icon: FiDatabase,
     activeIcon: FaDatabase,
   },
-  // {
-  //   id: "saved_query",
-  //   icon: FiBookmark,
-  //   activeIcon: FaBookmark,
-  // },
+  {
+    id: "saved_query",
+    icon: FiBookmark,
+    activeIcon: FaBookmark,
+  },
   {
     id: "data_source",
     icon: RiInformation2Line,
@@ -62,7 +62,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
         {sidebarActive && (
           <>
             {sidebarTab === "data_exp" && <DataExplorer />}
-            {/* {sidebarTab === "saved_query" && <SavedQuery />} */}
+            {sidebarTab === "saved_query" && <SavedQuery />}
             {sidebarTab === "data_source" && <DataSource />}
           </>
         )}

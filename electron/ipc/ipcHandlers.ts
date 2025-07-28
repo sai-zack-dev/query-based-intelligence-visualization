@@ -66,4 +66,17 @@ export function setupIpcHandlers() {
   ipcMain.handle("get-dashboard-charts", async (_, dashboardId: number) =>
     chartService.getChartsByDashboardId(dashboardId)
   );
+
+  // Query saving and loading
+  ipcMain.handle("save-query", (_, query) => queryService.saveQuery(query));
+
+  ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
+
+  ipcMain.handle("delete-query", (_, id: number) =>
+    queryService.deleteQueryById(id)
+  );
+
+  ipcMain.handle("get-query-by-id", (_, id: number) =>
+    queryService.getQueryById(id)
+  );
 }

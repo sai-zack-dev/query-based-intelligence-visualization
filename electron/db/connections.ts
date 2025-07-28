@@ -1,4 +1,5 @@
 import { getDatabase } from "./core";
+import { ConnectionData } from "@/types/connection";
 
 export function getAllConnections() {
   const db = getDatabase();
@@ -14,15 +15,17 @@ export function addConnection(conn: {
   database: string;
 }) {
   const db = getDatabase();
-  db.prepare(`
+  const result = db.prepare(`
     INSERT INTO connections (name, type, host, port, username, database)
     VALUES (@name, @type, @host, @port, @username, @database)
   `).run(conn);
+
+  return result.lastInsertRowid as number;
 }
 
-export function findConnectionByName(name: string) {
+export function findConnectionByName(name: string): ConnectionData | undefined {
   const db = getDatabase();
-  return db.prepare("SELECT * FROM connections WHERE name = ?").get(name);
+  return db.prepare("SELECT * FROM connections WHERE name = ?").get(name) as ConnectionData | undefined;
 }
 
 export function findConnectionByConfig(host: string, port: string, username: string) {

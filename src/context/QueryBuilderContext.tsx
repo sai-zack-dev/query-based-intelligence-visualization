@@ -3,11 +3,18 @@ import React, { createContext, useContext, useState } from "react";
 interface QueryBuilderContextProps {
   selectedDatabase: string | null;
   setSelectedDatabase: (db: string | null) => void;
+  sql: string;
+  setSql: (sql: string) => void;
 }
 
-const QueryBuilderContext = createContext<QueryBuilderContextProps | undefined>(undefined);
+const QueryBuilderContext = createContext<QueryBuilderContextProps | undefined>(
+  undefined
+);
 
-export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [sql, setSql] = useState<string>(""); // Add SQL state
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(
     localStorage.getItem("qbiv-selected-db") || null
   );
@@ -22,6 +29,8 @@ export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({ 
       value={{
         selectedDatabase,
         setSelectedDatabase: updateDatabase,
+        sql,
+        setSql,
       }}
     >
       {children}
@@ -32,6 +41,9 @@ export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({ 
 // Custom hook
 export const useQueryBuilderContext = () => {
   const ctx = useContext(QueryBuilderContext);
-  if (!ctx) throw new Error("useQueryBuilderContext must be used within QueryBuilderProvider");
+  if (!ctx)
+    throw new Error(
+      "useQueryBuilderContext must be used within QueryBuilderProvider"
+    );
   return ctx;
 };

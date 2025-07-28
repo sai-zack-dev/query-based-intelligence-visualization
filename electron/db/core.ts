@@ -48,6 +48,17 @@ export async function initDatabase(): Promise<void> {
       FOREIGN KEY (dashboard_id) REFERENCES dashboards(id),
       FOREIGN KEY (chart_id) REFERENCES charts(id)
     );
+
+    CREATE TABLE IF NOT EXISTS queries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sql TEXT NOT NULL,
+      connection_id INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (connection_id) REFERENCES connections(id)
+    );
   `);
 }
 

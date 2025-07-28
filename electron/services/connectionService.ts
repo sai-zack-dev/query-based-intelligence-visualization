@@ -9,7 +9,10 @@ import {
 } from "../db/connections";
 
 export class ConnectionService {
-  private validateConnection(conn: any): { isValid: boolean; missingFields?: string[] } {
+  private validateConnection(conn: any): {
+    isValid: boolean;
+    missingFields?: string[];
+  } {
     const missingFields = [];
     if (!conn?.name) missingFields.push("Name");
     if (!conn?.host) missingFields.push("Host");
@@ -28,22 +31,40 @@ export class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields!.join(", ")}`,
-          missingFields: validation.missingFields,
+          message: `Missing required fields: ${validation.missingFields!.join(
+            ", "
+          )}`,
         };
       }
 
       const nameMatch = findConnectionByName(conn.name);
-      const configMatch = findConnectionByConfig(conn.host, conn.port, conn.username);
 
       if (nameMatch) {
-        return { conflict: "name", existing: nameMatch };
-      } else if (configMatch) {
-        return { conflict: "config", existing: configMatch };
+        const isSame =
+          nameMatch.host === conn.host &&
+          nameMatch.port === conn.port;
+
+        if (!isSame) {
+          return { conflict: "name", existing: nameMatch };
+        } else {
+          return {
+            success: true,
+            id: nameMatch.id, // ✅ return existing ID to avoid re-creating
+          };
+        }
       }
 
-      addConnection(conn);
-      return { success: true };
+      const configMatch = findConnectionByConfig(
+        conn.host,
+        conn.port,
+        conn.username
+      );
+
+      if (nameMatch) return { conflict: "name", existing: nameMatch };
+      if (configMatch) return { conflict: "config", existing: configMatch };
+
+      const newId = addConnection(conn); // this should return inserted row's ID
+      return { success: true, id: newId };
     } catch (err: any) {
       console.error("Failed to save connection:", err);
       return { success: false, message: err.message || "Unknown error" };
@@ -56,7 +77,9 @@ export class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields!.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields!.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields,
         };
       }
@@ -75,7 +98,9 @@ export class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields!.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields!.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields,
         };
       }
@@ -99,7 +124,9 @@ export class ConnectionService {
       if (!validation.isValid) {
         return {
           success: false,
-          message: `Missing required fields: ${validation.missingFields!.join(", ")}`,
+          message: `Missing required fields: ${validation.missingFields!.join(
+            ", "
+          )}`,
           missingFields: validation.missingFields,
         };
       }

@@ -76,11 +76,11 @@ const DataSource: React.FC = () => {
       <div className="pl-10">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-sm font-medium text-gray-800">{name}</h3>
+            <h3 className="font-medium text-gray-800">{name}</h3>
 
             {/* Connection location */}
             {host && port !== null && (
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500 mt-1">
                 {host}:{port}
               </p>
             )}
@@ -102,7 +102,7 @@ const DataSource: React.FC = () => {
 
           {/* Type Tag */}
           <div
-            className={`text-xs px-3 py-1 rounded ${
+            className={`text-sm px-3 py-1 rounded-md ${
               typeColor[type?.toLowerCase()] || "bg-gray-100 text-gray-600"
             }`}
           >
@@ -112,7 +112,7 @@ const DataSource: React.FC = () => {
 
         {/* Change Button */}
         <Link to="/">
-          <button className="w-full mt-4 text-xs py-1.5 border border-blue-400 text-blue-500 rounded-md hover:bg-blue-50 transition">
+          <button className="btn-outline w-full mt-5 text-sm">
             Change Data Source
           </button>
         </Link>
