@@ -15,6 +15,7 @@ import {
   Join,
   Filter,
   OrderByItem,
+  JoinType,
 } from "@/types/querybuilder";
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
@@ -25,17 +26,17 @@ interface ManualPanelProps {
 export const ManualPanel: React.FC<ManualPanelProps> = ({
   selectedDatabase,
 }) => {
-  const { sql, setSql } = useQueryBuilderContext();
+  const { sql, setSql, manualForm, setManualForm, joins, setJoins } = useQueryBuilderContext();
+
   const [selectAll, setSelectAll] = useState<boolean>(true);
   const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>(
     []
   );
   const [fromTable, setFromTable] = useState<string>("");
-  const [joins, setJoins] = useState<Join[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [groupBy, setGroupBy] = useState<string[]>([]);
   const [orderBy, setOrderBy] = useState<OrderByItem[]>([]);
-  const [limit, setLimit] = useState<string>("");
+  const [limit, setLimit] = useState<number>();
   const groupableOptions = columnSelections.map((c) => c.alias || c.name);
   const orderableOptions = columnSelections.map((col) => col.alias || col.name);
 
@@ -50,6 +51,61 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
   useEffect(() => {
     if (fromTable && selectedDatabase) fetchSchema(selectedDatabase, fromTable);
   }, [fromTable]);
+
+  useEffect(() => {
+    if (selectedDatabase) {
+      joins.forEach((join) => {
+        if (join.table && !schema?.[selectedDatabase]?.[join.table]) {
+          fetchSchema(selectedDatabase, join.table);
+        }
+      });
+    }
+  }, [joins]);
+
+  useEffect(() => {
+    // console.log(manualForm);
+    if (manualForm) {
+      setFromTable(manualForm.table);
+      setSelectAll(manualForm.columns.includes("*"));
+      setColumnSelections(
+        manualForm.columns.includes("*")
+          ? []
+          : manualForm.columns.map((raw) => {
+              const aliasMatch = raw.match(/\s+AS\s+(.+)$/i);
+              const alias = aliasMatch ? aliasMatch[1].trim() : "";
+              const expr = aliasMatch ? raw.replace(/\s+AS\s+.+$/i, "") : raw;
+
+              let func: "" | "COUNT" | "SUM" | "DATE_FORMAT" = "";
+              let name = expr;
+              let format: string | undefined = undefined;
+
+              if (/^COUNT\(.+\)$/i.test(expr)) {
+                func = "COUNT";
+                name = expr.match(/^COUNT\((.+)\)$/i)?.[1].trim() || expr;
+              } else if (/^SUM\(.+\)$/i.test(expr)) {
+                func = "SUM";
+                name = expr.match(/^SUM\((.+)\)$/i)?.[1].trim() || expr;
+              } else if (/^DATE_FORMAT\(.+?,\s*'(.+?)'\)/i.test(expr)) {
+                func = "DATE_FORMAT";
+                const match = expr.match(/^DATE_FORMAT\((.+?),\s*'(.+?)'\)/i);
+                name = match?.[1].trim() || expr;
+                format = match?.[2];
+              }
+
+              return { name: name.trim(), func, alias, format };
+            })
+      );
+      if (manualForm.filters) setFilters(manualForm.filters);
+      if (manualForm.limit) setLimit(Number(manualForm.limit));
+      if (manualForm.groupBy) setGroupBy(manualForm.groupBy);
+      if (manualForm.orderBy) setOrderBy(manualForm.orderBy);
+      if (manualForm.joins) {
+        setJoins(manualForm.joins);
+      }
+
+      setManualForm(null);
+    }
+  }, [manualForm]);
 
   const allColumns: string[] = selectedDatabase
     ? [
@@ -90,7 +146,7 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
 
     const groupByFields = groupBy.map((col) => aliasMap[col] || col);
     const orderByFields = orderBy.map(
-      (item) => `${aliasMap[item.column] || item.column} ${item.direction}`
+      (item) => `${item.column} ${item.direction}`
     );
 
     let sql = `SELECT ${cols} FROM ${fromTable}`;
@@ -104,11 +160,11 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
     if (where) sql += ` WHERE ${where}`;
     if (groupByFields.length) sql += ` GROUP BY ${groupByFields.join(", ")}`;
     if (orderByFields.length) sql += ` ORDER BY ${orderByFields.join(", ")}`;
-    if (limit && /^\d+$/.test(limit.trim())) sql += ` LIMIT ${limit.trim()}`;
+    if (limit) sql += ` LIMIT ${limit}`;
 
     return sql + ";";
   };
-  // Add this in ManualPanel.tsx, below useState
+
   const toggleColumn = (col: string) => {
     setColumnSelections((prev) => {
       const exists = prev.find((c) => c.name === col);
@@ -131,6 +187,7 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
     if (!selectedDatabase) return;
     const sql = generateSQL();
     setSql(sql);
+    console.log("Running query:", sql);
     runQuery(selectedDatabase, sql);
   };
 

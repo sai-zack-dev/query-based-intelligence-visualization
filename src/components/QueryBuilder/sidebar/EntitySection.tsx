@@ -10,7 +10,9 @@ const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
   const { fetchTables, fetchSchema, tables, schema, loading, error } =
     useActiveConnection();
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     if (selectedDatabase) {
@@ -25,8 +27,11 @@ const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
       [tableName]: !prev[tableName],
     }));
 
-    if (!schema?.[selectedDatabase!]?.[tableName]) {
-      await fetchSchema(selectedDatabase!, tableName);
+    if (
+      selectedDatabase &&
+      (!schema?.[selectedDatabase] || !schema[selectedDatabase][tableName])
+    ) {
+      await fetchSchema(selectedDatabase, tableName);
     }
   };
 

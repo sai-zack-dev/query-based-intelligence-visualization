@@ -13,6 +13,16 @@ export type ExplorerData = Record<
   }
 >;
 
+export interface ManualFormState {
+  table: string;
+  columns: string[];
+  filters?: Filter[];
+  limit?: number;
+  orderBy?: OrderByItem[];
+  groupBy?: string[];
+  joins?: Join[];
+}
+
 // Type for SELECTed columns
 export type ColumnSelection = {
   name: string;
@@ -22,14 +32,16 @@ export type ColumnSelection = {
 };
 
 // Type for JOINs
-export type JoinType = "JOIN" | "INNER JOIN" | "LEFT JOIN" | "RIGHT JOIN";
+export type JoinType = "INNER JOIN" | "LEFT JOIN" | "RIGHT JOIN";
+
+export type operatorType = "=" | ">" | "<" | ">=" | "<=" | "!=";
 
 export type Join = {
   type: JoinType;
   table: string;
   on: {
     left: string;
-    operator: "=" | ">" | "<" | ">=" | "<=" | "!=";
+    operator: operatorType;
     right: string;
   };
 };

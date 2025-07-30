@@ -1,7 +1,7 @@
 import { QueryTools } from "@/components/QueryBuilder/QueryTools";
 import { LeftPanel } from "@/components/QueryBuilder/LeftPanel";
 import { SidebarData } from "@/types/sidebar";
-import { QueryBuilderProvider } from "@/context/QueryBuilderContext"; // ✅ import
+import { QueryBuilderProvider } from "@/context/QueryBuilderContext"; 
 
 const QueryBuilderPage: React.FC<SidebarData> = ({
   sidebarActive,

@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { FaPlay, FaChartBar, FaTrashAlt } from "react-icons/fa";
+import { FaPlay, FaTrashAlt } from "react-icons/fa";
 import { QueryRecord } from "@/types/query";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
+import type {
+  Filter,
+  Join,
+  JoinType,
+  operatorType,
+  OrderByItem,
+} from "@/types/querybuilder";
 
 const SavedQuery: React.FC = () => {
   const [queries, setQueries] = useState<QueryRecord[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const { setManualForm, setJoins } = useQueryBuilderContext();
 
   useEffect(() => {
     loadQueries();
@@ -19,11 +28,106 @@ const SavedQuery: React.FC = () => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
+  const parseSimpleSQL = (query: string) => {
+    const result: {
+      table: string;
+      columns: string[];
+      filters?: Filter[];
+      limit?: number;
+      joins?: Join[];
+      groupBy?: string[];
+      orderBy?: OrderByItem[];
+    } = {
+      table: "",
+      columns: [],
+    };
+
+    const selectMatch = query.match(/SELECT\s+(.*?)\s+FROM/i);
+    const fromMatch = query.match(/FROM\s+([^\s;]+)/i);
+    const whereMatch = query.match(/WHERE\s+(.*?)(GROUP BY|ORDER BY|LIMIT|$)/i);
+    const limitMatch = query.match(/LIMIT\s+(\d+)/i);
+    const groupByMatch = query.match(/GROUP BY\s+(.*?)(ORDER BY|LIMIT|$)/i);
+    const orderByMatch = query.match(/ORDER BY\s+(.*?)(LIMIT|$)/i);
+    const joinRegex =
+      /((LEFT|RIGHT|INNER)?\s*JOIN)\s+(\w+)\s+ON\s+([^\s]+)\s*([=<>!]+)\s*([^\s]+)/gi;
+
+    if (selectMatch) {
+      const colsRaw = selectMatch[1].trim();
+      result.columns =
+        colsRaw === "*" ? ["*"] : colsRaw.split(",").map((c) => c.trim());
+    }
+
+    if (fromMatch) result.table = fromMatch[1].trim();
+    if (limitMatch) result.limit = Number(limitMatch[1].trim());
+
+    if (whereMatch) {
+      const conditions = whereMatch[1].split("AND").map((c) => c.trim());
+      result.filters = conditions
+        .map((cond) => {
+          const parts = cond.match(
+            /^(.+?)\s*(=|!=|>|<|LIKE)\s*['"]?(.*?)['"]?$/i
+          );
+          if (!parts) return null;
+          return {
+            column: parts[1].trim(),
+            operator: parts[2].trim() as any,
+            value: parts[3].trim(),
+          };
+        })
+        .filter(Boolean) as Filter[];
+    }
+
+    if (groupByMatch) {
+      result.groupBy = groupByMatch[1].split(",").map((s) => s.trim());
+    }
+
+    if (orderByMatch) {
+      result.orderBy = orderByMatch[1].split(",").map((s) => {
+        const [col, dir] = s.trim().split(/\s+/);
+        return {
+          column: col,
+          direction: dir?.toUpperCase() === "DESC" ? "DESC" : "ASC",
+        };
+      });
+    }
+
+    result.joins = [];
+    let joinMatch: RegExpExecArray | null;
+    while ((joinMatch = joinRegex.exec(query)) !== null) {
+      result.joins.push({
+        type: joinMatch[1]?.toUpperCase() as JoinType,
+        table: joinMatch[3],
+        on: {
+          left: joinMatch[4],
+          operator: joinMatch[5] as operatorType,
+          right: joinMatch[6],
+        },
+      });
+    }
+
+    return result;
+  };
+
   const handleUseQuery = (id: number) => {
     const selected = queries.find((q) => q.id === id);
     if (!selected) return;
-    console.log("Use query:", selected);
-    // TODO: auto-fill form builder or text editor
+
+    const parsed = parseSimpleSQL(selected.sql);
+
+    if (parsed && parsed.table) {
+      setManualForm({
+        table: parsed.table,
+        columns: parsed.columns ?? [],
+        filters: parsed.filters ?? [],
+        joins: parsed.joins ?? [],
+        groupBy: parsed.groupBy ?? [],
+        orderBy: parsed.orderBy ?? [],
+        limit: Number(parsed.limit),
+      });
+      setJoins(parsed.joins ?? []);
+    } else {
+      alert("Unable to parse this query.");
+    }
   };
 
   const handleDeleteQuery = async (id: number) => {
@@ -43,6 +147,7 @@ const SavedQuery: React.FC = () => {
       "JOIN",
       "ON",
       "SUM",
+      "COUNT",
       "DATE",
       "NOW",
       "INTERVAL",
@@ -150,17 +255,17 @@ const SavedQuery: React.FC = () => {
                       </pre>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row items-center gap-2">
+                    <div className="flex flex-col lg:flex-row gap-2">
                       <button
                         onClick={() => handleUseQuery(query.id)}
-                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors w-full"
+                        className="btn-primary w-full flex items-center gap-2 justify-center"
                       >
                         <FaPlay className="w-3 h-3" />
                         <span className="text-xs">Use Query</span>
                       </button>
                       <button
                         onClick={() => handleDeleteQuery(query.id)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-600 border border-red-300 rounded-md hover:bg-red-200 transition-colors w-full"
+                        className="btn-outline-danger w-full flex items-center justify-center gap-2"
                       >
                         <FaTrashAlt className="w-4 h-4" />
                         <span className="text-xs">Delete</span>

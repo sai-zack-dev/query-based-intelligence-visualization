@@ -52,14 +52,15 @@ export const AiPanel: React.FC = () => {
       setTimeout(resolve, 1000 + Math.random() * 2000)
     );
 
-    
-
-    setMessages((prev) => [...prev, {
-      id: "2",
-      text: "OK",
-      isUser: false,
-      timestamp: new Date(),
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: "2",
+        text: "OK",
+        isUser: false,
+        timestamp: new Date(),
+      },
+    ]);
     setIsLoading(false);
   };
 
@@ -78,6 +79,34 @@ export const AiPanel: React.FC = () => {
 
     // Simulate AI response
     await simulateAIResponse(inputText);
+  };
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = "auto";
+
+    // Set height based on scrollHeight, but respect min and max constraints
+    const minHeight = 44; // minHeight in pixels
+    const maxHeight = 120; // maxHeight in pixels
+
+    const newHeight = Math.min(
+      Math.max(textarea.scrollHeight, minHeight),
+      maxHeight
+    );
+    textarea.style.height = `${newHeight}px`;
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [inputText]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputText(e.target.value);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -110,9 +139,7 @@ export const AiPanel: React.FC = () => {
               >
                 {/* Avatar */}
                 {!message.isUser && (
-                  <div
-                    className="rounded-full flex items-center justify-center flex-shrink-0 -translate-y-[10px]"
-                  >
+                  <div className="rounded-full flex items-center justify-center flex-shrink-0 -translate-y-[10px]">
                     <LuBot className="w-5 h-5 text-gray-600" />
                   </div>
                 )}
@@ -181,16 +208,17 @@ export const AiPanel: React.FC = () => {
           </button>
         )}
         <textarea
+          ref={textareaRef}
           placeholder="Ask anything to AI..."
-          className="flex-grow px-5 py-2 border rounded-xl bubble-wrap focus:outline-0 opacity-75 focus:opacity-100 placeholder:text-gray-500 bg-gray-50/10"
+          className="flex-grow px-5 py-2 border rounded-lg bubble-wrap focus:outline-0 opacity-75 focus:opacity-100 placeholder:text-gray-500 bg-gray-50/10"
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           rows={1}
-          style={{ minHeight: '44px', maxHeight: '120px' }}
+          style={{ minHeight: "44px", maxHeight: "120px", lineHeight: "1.5" }}
         />
         <button
-          className="inverted-bubble-wrap flex justify-center items-center w-10 h-10 rounded-full opacity-100 hover:shadow-sm cursor-pointer"
+          className="inverted-bubble-wrap flex justify-center items-center w-10 h-10 rounded-full opacity-100 hover:shadow-sm cursor-pointer focus:text-gray-800"
           onClick={handleSendMessage}
           disabled={!inputText.trim() || isLoading}
         >

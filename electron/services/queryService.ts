@@ -32,9 +32,9 @@ export const queryService = {
       }
 
       const connection = await connectionManager.getActiveConnectionMeta();
-      console.log("Active connection meta:", connection);
+      // console.log("Active connection meta:", connection);
       const connectionId = connection?.meta?.id;
-      console.log("ID being inserted into queries:", connection?.meta?.id);
+      // console.log("ID being inserted into queries:", connection?.meta?.id);
 
       const uuid = addQuery({
         name: query.name,

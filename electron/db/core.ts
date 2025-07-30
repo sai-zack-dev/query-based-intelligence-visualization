@@ -7,9 +7,8 @@ let db: Database.Database | null = null;
 
 export async function initDatabase(): Promise<void> {
   const dbPath = path.join(app.getPath("userData"), "test.db"); // gonna change qbiv.db to production and test.db in test
-  console.log("Using SQLite path:", dbPath);
+  // console.log("Using SQLite path:", dbPath);
   db = new Database(dbPath);
-  console.log("Db path:", dbPath);
   // Centralized table creation
   db.exec(`
     CREATE TABLE IF NOT EXISTS connections (

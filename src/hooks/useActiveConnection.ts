@@ -15,7 +15,10 @@ export function useActiveConnection() {
   const [meta, setMeta] = useState<ConnectionMeta | null>(null);
   const [databases, setDatabases] = useState<string[]>([]);
   const [tables, setTables] = useState<string[]>([]);
-  const [schema, setSchema] = useState<Record<string, Record<string, any[]>> | null>(null);
+  const [schema, setSchema] = useState<Record<
+    string,
+    Record<string, any[]>
+  > | null>(null);
 
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(
     () => localStorage.getItem("qbiv-selected-db") || null
@@ -67,10 +70,11 @@ export function useActiveConnection() {
     setLoading((prev) => ({ ...prev, tables: true }));
     try {
       const res = await window.ipcRenderer.invoke("get-database-explorer-data");
-      const dbData = res.explorer[dbName];
-      if (dbData) {
+      const dbData = res.explorer?.[dbName];
+      if (res.success && dbData) {
         setTables(dbData.tables || []);
       } else {
+        setTables([]); // 🧹 prevent old state from showing
         setError(`No tables found for database ${dbName}`);
       }
     } catch (err: any) {
@@ -92,6 +96,8 @@ export function useActiveConnection() {
             [table]: tableSchema,
           },
         }));
+      } else {
+        console.warn(`Table schema not found for ${dbName}.${table}`);
       }
     } catch (err: any) {
       console.error("Error fetching schema:", err.message);
@@ -117,5 +123,7 @@ export function useActiveConnection() {
     fetchSchema,
     selectedDatabase,
     setSelectedDatabase,
+    setTables,
+    setSchema,
   };
 }
