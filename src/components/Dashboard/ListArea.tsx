@@ -6,9 +6,10 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { FaPencil } from "react-icons/fa6";
-import { FaTrash } from "react-icons/fa";
+import { FaCheck, FaTrash } from "react-icons/fa";
 
 interface ListAreaProps extends SidebarData {
+  isEdit: boolean;
   setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
   dashboardId: number | undefined;
 }
@@ -16,6 +17,7 @@ interface ListAreaProps extends SidebarData {
 export const ListArea: React.FC<ListAreaProps> = ({
   sidebarActive,
   toggleSidebar,
+  isEdit,
   setIsEdit,
   dashboardId,
 }) => {
@@ -66,87 +68,106 @@ export const ListArea: React.FC<ListAreaProps> = ({
   };
 
   return (
-    <div className="pt-6">
-      <Link to="/" className={sidebarNav}>
-        <img src="../logo.png" alt="QBIV Logo" className="w-6 h-6" />
-        {sidebarActive && (
-          <span className="font-bold text-lg text-blue-500">QBIV</span>
-        )}
-      </Link>
+    <div className="pt-6 flex flex-col justify-between">
+      <div>
+        <Link to="/" className={sidebarNav}>
+          <img src="../logo.png" alt="QBIV Logo" className="w-6 h-6" />
+          {sidebarActive && (
+            <span className="font-bold text-lg text-blue-500">QBIV</span>
+          )}
+        </Link>
 
-      {/* Sidebar Panel */}
-      <div className={sidebarClasses}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
-          <h2 className="font-semibold text-gray-800">Dashboards</h2>
-        </div>
-        {/* Dashboard List */}
-        <div className="flex flex-col justify-between items-between min-h-30 pl-10">
-          <div className="flex flex-col gap-1 pb-5">
-            {dashboards.length === 0 ? (
-              <p className="text-sm text-gray-400 px-3 py-2 italic text-center">
-                No dashboards found
-              </p>
+        {/* Sidebar Panel */}
+        <div className={sidebarClasses}>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
+            <h2 className="font-semibold text-gray-800">Dashboards</h2>
+          </div>
+          {/* Dashboard List */}
+          <div className="flex flex-col justify-between items-between min-h-30">
+            <div className="flex flex-col gap-1 pb-5">
+              {dashboards.length === 0 ? (
+                <p className="text-sm text-gray-400 px-3 py-2 italic text-center">
+                  No dashboards found
+                </p>
+              ) : (
+                dashboards.map((dashboard) => (
+                  <Link
+                    key={dashboard.id}
+                    to={`/dashboard/${dashboard.id}`}
+                    className={`px-3 py-2 rounded-md text-sm hover:bg-blue-50 text-gray-700 ${
+                      dashboardId === dashboard.id &&
+                      "bg-blue-100 text-blue-600 font-semibold"
+                    }`}
+                  >
+                    {dashboard.name}
+                  </Link>
+                ))
+              )}
+            </div>
+            {creatingNew ? (
+              <>
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="New dashboard name"
+                />
+                <div className="flex gap-3 pt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 cursor-pointer"
+                    onClick={() => setCreatingNew(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-green-500 hover:bg-green-600 text-white cursor-pointer hover:text-white flex-1"
+                    onClick={handleCreateDashboard}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </>
             ) : (
-              dashboards.map((dashboard) => (
-                <Link
-                  key={dashboard.id}
-                  to={`/dashboard/${dashboard.id}`}
-                  className={`px-3 py-2 rounded-md text-sm hover:bg-blue-50 text-gray-700 ${
-                    dashboardId === dashboard.id &&
-                    "bg-blue-100 text-blue-600 font-semibold"
-                  }`}
-                >
-                  {dashboard.name}
-                </Link>
-              ))
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => setCreatingNew(true)}
+              >
+                <PlusIcon className="mr-2 w-4 h-4" /> Add new dashboard
+              </Button>
             )}
           </div>
-          {creatingNew ? (
-            <>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="New dashboard name"
-              />
-              <div className="flex gap-3 pt-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 cursor-pointer"
-                  onClick={() => setCreatingNew(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="bg-green-500 hover:bg-green-600 text-white cursor-pointer hover:text-white flex-1"
-                  onClick={handleCreateDashboard}
-                >
-                  Confirm
-                </Button>
-              </div>
-            </>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => setCreatingNew(true)}
-            >
-              <PlusIcon className="mr-2 w-4 h-4" /> Add new dashboard
-            </Button>
-          )}
-          {/* <Button
-            size="sm"
-            variant="outline"
-            className="w-full mt-2"
-            onClick={() => setIsEdit((prev) => !prev)}
-          >
-            Toggle Edit
-          </Button> */}
         </div>
+      </div>
+
+      <div className={`flex items-center gap-2 p-3 ${sidebarActive ? "flex-row" : "flex-col" }`}>
+        {isEdit ? (
+          <button
+          className="py-2.5  text-white rounded-md  transition cursor-pointer px-3 w-full text-sm flex justify-center items-center gap-2 bg-green-500 hover:bg-green-600"
+          onClick={() => setIsEdit((prev) => !prev)}
+        >
+          <FaCheck />
+          {sidebarActive && "Save"}
+
+        </button>
+        ) : (
+          <button
+          className="btn-primary px-3 w-full text-sm flex justify-center items-center gap-2"
+          onClick={() => setIsEdit((prev) => !prev)}
+        >
+          <FaPencil />
+          {sidebarActive && "Edit"}
+        </button>
+        )}
+        <button className="btn-outline-danger px-3 w-full text-sm flex justify-center items-center gap-2">
+          <FaTrash />
+          {sidebarActive && "Delete"}
+        </button>
       </div>
 
       {/* Toggle Button */}
@@ -162,17 +183,6 @@ export const ListArea: React.FC<ListAreaProps> = ({
           <RiSidebarUnfoldLine size={16} />
         )}
       </button>
-
-      <div className="flex flex-col items-center gap-2 p-3">
-        <button className="btn-primary w-full text-sm">
-          <FaPencil className="mr-2" />
-          {sidebarActive && "Edit"}
-        </button>
-        <button className="btn-primary w-full text-sm">
-          <FaTrash className="mr-2" />
-          {sidebarActive && "Delete"}
-        </button>
-      </div>
     </div>
   );
 };

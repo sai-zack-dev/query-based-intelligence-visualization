@@ -9,6 +9,7 @@ import type {
   operatorType,
   OrderByItem,
 } from "@/types/querybuilder";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 const SavedQuery: React.FC = () => {
   const [queries, setQueries] = useState<QueryRecord[]>([]);
@@ -130,11 +131,21 @@ const SavedQuery: React.FC = () => {
     }
   };
 
-  const handleDeleteQuery = async (id: number) => {
-    const confirmed = confirm("Are you sure you want to delete this query?");
-    if (!confirmed) return;
-    await window.ipcRenderer.invoke("delete-query", id);
-    loadQueries();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+
+  const requestDeleteQuery = (id: number) => {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (pendingDeleteId !== null) {
+      await window.ipcRenderer.invoke("delete-query", pendingDeleteId);
+      loadQueries();
+      setPendingDeleteId(null);
+      setConfirmOpen(false);
+    }
   };
 
   const formatSQL = (sql: string) => {
@@ -228,9 +239,8 @@ const SavedQuery: React.FC = () => {
                           <FaPlay className="w-3 h-3" />
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteQuery(query.id);
+                          onClick={() => {
+                            requestDeleteQuery(query.id);
                           }}
                           className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors cursor-pointer"
                           title="Delete Query"
@@ -264,7 +274,7 @@ const SavedQuery: React.FC = () => {
                         <span className="text-xs">Use Query</span>
                       </button>
                       <button
-                        onClick={() => handleDeleteQuery(query.id)}
+                        onClick={() => requestDeleteQuery(query.id)}
                         className="btn-outline-danger w-full flex items-center justify-center gap-2"
                       >
                         <FaTrashAlt className="w-4 h-4" />
@@ -278,6 +288,14 @@ const SavedQuery: React.FC = () => {
           })
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setConfirmOpen(false)}
+        title="Delete Saved Query?"
+        description="This will permanently remove the query. Are you sure?"
+      />
     </>
   );
 };
