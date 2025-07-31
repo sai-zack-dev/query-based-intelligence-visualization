@@ -27,8 +27,8 @@ export const ConnectionForm: React.FC<Props> = ({
   const {
     connectionType,
     setConnectionType,
-    fileName,
-    setFileName,
+    fileNames,
+    setFileNames,
     formData,
     setFormData,
     status,
@@ -36,10 +36,16 @@ export const ConnectionForm: React.FC<Props> = ({
     handleSubmit,
   } = useConnectionForm(selectedConnection, onDialogTrigger); // <-- Pass dialog trigger
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setFileName(file.name);
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement> | File[]
+  ) => {
+    const files = Array.isArray(e)
+      ? e
+      : Array.from(e.target.files || []);
+  
+    setFileNames(files.map((f) => f.name));
   };
+  
 
   const handleFormChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -77,7 +83,7 @@ export const ConnectionForm: React.FC<Props> = ({
           <ConnectionInputs
             connectionType={connectionType as ConnectionType}
             formData={formData}
-            fileName={fileName || ""}
+            fileNames={fileNames || []}
             onFormChange={handleFormChange}
             onFileChange={handleFileChange}
           />

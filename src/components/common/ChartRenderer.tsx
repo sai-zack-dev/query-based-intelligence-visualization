@@ -19,7 +19,7 @@ export function renderChartTemplate(chart: DashboardChart) {
   if (["SimpleBar", "StackedBar"].includes(chart.type)) {
     return (
       <BarChartTemplate
-        name={chart.title as ChartName}
+        name={chart.type as ChartName}
         data={data}
         xKey={config.xKey}
         bars={(config.bars as BarChartConfig[]).map((bar) => ({
@@ -32,36 +32,4 @@ export function renderChartTemplate(chart: DashboardChart) {
       />
     );
   }
-
-  // switch (chart.type) {
-  //   case "SimpleBar" || "StackedBar":
-  //     return (
-  //       <BarChartTemplate
-  //         name={chart.title as ChartName}
-  //         data={data}
-  //         xKey={config.xKey}
-  //         bars={config.bars}
-  //       />
-  //     );
-
-  //   case "LineChart":
-  //     return (
-  //       // <LineChartTemplate
-  //       //   name={chart.title}
-  //       //   data={data}
-  //       //   xKey={config.xKey}
-  //       //   lines={config.lines}
-  //       // />
-  //        <div className="text-yellow-500 text-sm italic">
-  //         Unsupported chart type: {chart.type}
-  //       </div>
-  //     );
-
-  //   default:
-  //     return (
-  //       <div className="text-yellow-500 text-sm italic">
-  //         Unsupported chart type: {chart.type}
-  //       </div>
-  //     );
-  // }
 }

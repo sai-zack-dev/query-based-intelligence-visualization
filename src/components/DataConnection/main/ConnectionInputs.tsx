@@ -6,15 +6,17 @@ import { FileUploadSection } from "./FileUploadSection";
 interface Props {
   connectionType: ConnectionType;
   formData: FormData;
-  fileName: string;
+  fileNames: string[];
   onFormChange: (key: string, value: string) => void;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (
+    e: React.ChangeEvent<HTMLInputElement> | File[]
+  ) => void;
 }
 
 export const ConnectionInputs: React.FC<Props> = ({
   connectionType,
   formData,
-  fileName,
+  fileNames,
   onFormChange,
   onFileChange,
 }) => {
@@ -31,7 +33,7 @@ export const ConnectionInputs: React.FC<Props> = ({
     return (
       <FileUploadSection
         connectionType={connectionType}
-        fileName={fileName}
+        fileNames={fileNames}
         onFileChange={onFileChange}
       />
     );

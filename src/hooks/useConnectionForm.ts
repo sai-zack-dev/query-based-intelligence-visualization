@@ -22,7 +22,7 @@ export const useConnectionForm = (
   const navigate = useNavigate();
 
   const [connectionType, setConnectionType] = useState<string>("");
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     host: "",
@@ -47,7 +47,7 @@ export const useConnectionForm = (
   useEffect(() => {
     if (selectedConnection) {
       setConnectionType(selectedConnection.type.toLowerCase());
-      setFileName(null);
+      setFileNames([]);
       setFormData({
         name: selectedConnection.name ?? "",
         host: selectedConnection.host ?? "",
@@ -58,7 +58,7 @@ export const useConnectionForm = (
       });
     } else {
       setConnectionType("");
-      setFileName(null);
+      setFileNames([]);
       setFormData({
         name: "",
         host: "",
@@ -275,8 +275,8 @@ export const useConnectionForm = (
   return {
     connectionType,
     setConnectionType,
-    fileName,
-    setFileName,
+    fileNames,
+    setFileNames,
     formData,
     setFormData,
     status,
