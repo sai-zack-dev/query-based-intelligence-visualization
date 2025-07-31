@@ -145,31 +145,35 @@ export const ListArea: React.FC<ListAreaProps> = ({
         </div>
       </div>
 
-      <div className={`flex items-center gap-2 p-3 ${sidebarActive ? "flex-row" : "flex-col" }`}>
-        {isEdit ? (
-          <button
-          className="py-2.5  text-white rounded-md  transition cursor-pointer px-3 w-full text-sm flex justify-center items-center gap-2 bg-green-500 hover:bg-green-600"
-          onClick={() => setIsEdit((prev) => !prev)}
+      {dashboardId && (
+        <div
+          className={`flex items-center gap-2 p-3 ${
+            sidebarActive ? "flex-row" : "flex-col"
+          }`}
         >
-          <FaCheck />
-          {sidebarActive && "Save"}
-
-        </button>
-        ) : (
-          <button
-          className="btn-primary px-3 w-full text-sm flex justify-center items-center gap-2"
-          onClick={() => setIsEdit((prev) => !prev)}
-        >
-          <FaPencil />
-          {sidebarActive && "Edit"}
-        </button>
-        )}
-        <button className="btn-outline-danger px-3 w-full text-sm flex justify-center items-center gap-2">
-          <FaTrash />
-          {sidebarActive && "Delete"}
-        </button>
-      </div>
-
+          {isEdit ? (
+            <button
+              className="py-2.5  text-white rounded-md  transition cursor-pointer px-3 w-full text-sm flex justify-center items-center gap-2 bg-green-500 hover:bg-green-600"
+              onClick={() => setIsEdit((prev) => !prev)}
+            >
+              <FaCheck />
+              {sidebarActive && "Save"}
+            </button>
+          ) : (
+            <button
+              className="btn-primary px-3 w-full text-sm flex justify-center items-center gap-2"
+              onClick={() => setIsEdit((prev) => !prev)}
+            >
+              <FaPencil />
+              {sidebarActive && "Edit"}
+            </button>
+          )}
+          <button className="btn-outline-danger px-3 w-full text-sm flex justify-center items-center gap-2">
+            <FaTrash />
+            {sidebarActive && "Delete"}
+          </button>
+        </div>
+      )}
       {/* Toggle Button */}
       <button
         className={toggleButtonClasses}
