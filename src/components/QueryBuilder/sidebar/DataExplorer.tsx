@@ -1,29 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import EntitySection from "./EntitySection";
 import { useActiveConnection } from "@/hooks/useActiveConnection";
-import { useQueryBuilderContext } from "@/context/QueryBuilderContext"; // ✅ Add
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 const DataExplorer: React.FC = () => {
   const {
     databases,
     fetchDatabases,
     fetchTables,
+    setTables,
+    setSchema,
     loading,
     error,
   } = useActiveConnection();
 
-  const { selectedDatabase, setSelectedDatabase } = useQueryBuilderContext(); // ✅ Use context
+  const { selectedDatabase, setSelectedDatabase } = useQueryBuilderContext();
 
+  // Fetch all database names on mount
   useEffect(() => {
     fetchDatabases();
   }, []);
 
+  // ✅ Step 3: Fetch tables when selectedDatabase changes
+  useEffect(() => {
+    if (selectedDatabase) {
+      // ✅ Step 4: Clear old explorer state before fetching new
+      setTables([]);
+      setSchema(null);
+      fetchTables(selectedDatabase);
+    }
+  }, [selectedDatabase]);
+
   const handleDatabaseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const db = e.target.value;
-    if (db) {
-      setSelectedDatabase(db); // ✅ updates context (and QueryTools)
-      fetchTables(db);
-    }
+    setSelectedDatabase(db || null); // if user selects empty option
   };
 
   return (
@@ -54,8 +64,12 @@ const DataExplorer: React.FC = () => {
               ))}
             </select>
 
-            {loading.dbs && <p className="text-xs text-gray-500 mt-1">Loading databases…</p>}
-            {error && <p className="text-xs text-red-500 mt-1">Error: {error}</p>}
+            {loading.dbs && (
+              <p className="text-xs text-gray-500 mt-1">Loading databases…</p>
+            )}
+            {error && (
+              <p className="text-xs text-red-500 mt-1">Error: {error}</p>
+            )}
           </div>
         </form>
 

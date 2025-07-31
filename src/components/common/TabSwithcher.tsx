@@ -37,7 +37,7 @@ const TabSwitcher: React.FC<TabSwitcherProps> = ({
         <button
           key={tab.id}
           onClick={() => handleTabClick(tab.id)}
-          className={`relative z-10 py-2 text-xs transition duration-200 ${
+          className={`relative z-10 py-2 text-xs transition duration-200 cursor-pointer ${
             activeTab === tab.id
               ? "text-blue-500 font-semibold"
               : "text-gray-500 hover:text-black"

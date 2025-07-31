@@ -2,8 +2,8 @@
 import React from "react";
 
 interface LimitSectionProps {
-  limit: string;
-  setLimit: (limit: string) => void;
+  limit: number | undefined;
+  setLimit: (limit: number) => void;
 }
 
 const LimitSection: React.FC<LimitSectionProps> = ({ limit, setLimit }) => {
@@ -17,7 +17,7 @@ const LimitSection: React.FC<LimitSectionProps> = ({ limit, setLimit }) => {
         value={limit}
         onChange={(e) => {
           const value = e.target.value.trim();
-          if (/^\d*$/.test(value)) setLimit(value); // only allow digits
+          if (/^\d*$/.test(value)) setLimit(Number(value)); // only allow digits
         }}
         placeholder="e.g. 10"
       />

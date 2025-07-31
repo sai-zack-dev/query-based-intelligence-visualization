@@ -64,7 +64,7 @@ export default function SaveToDashboardModal({ open, onClose, chart }: Props) {
     }
 
     const chartId = result.id;
-    console.log("Chart saved with ID:", chartId, "to dashboard ID:", selectedId);
+    // console.log("Chart saved with ID:", chartId, "to dashboard ID:", selectedId);
 
     await window.ipcRenderer.invoke("link-chart-to-dashboard", {
       chartId,

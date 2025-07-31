@@ -1,3 +1,4 @@
+import { Join, ManualFormState } from "@/types/querybuilder";
 import React, { createContext, useContext, useState } from "react";
 
 interface QueryBuilderContextProps {
@@ -5,6 +6,10 @@ interface QueryBuilderContextProps {
   setSelectedDatabase: (db: string | null) => void;
   sql: string;
   setSql: (sql: string) => void;
+  manualForm: ManualFormState | null;
+  setManualForm: (form: ManualFormState | null) => void;
+  joins: Join[];
+  setJoins: React.Dispatch<React.SetStateAction<Join[]>>;
 }
 
 const QueryBuilderContext = createContext<QueryBuilderContextProps | undefined>(
@@ -14,6 +19,9 @@ const QueryBuilderContext = createContext<QueryBuilderContextProps | undefined>(
 export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [manualForm, setManualForm] = useState<ManualFormState | null>(null);
+  const [joins, setJoins] = useState<Join[]>([]);
+
   const [sql, setSql] = useState<string>(""); // Add SQL state
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(
     localStorage.getItem("qbiv-selected-db") || null
@@ -31,6 +39,10 @@ export const QueryBuilderProvider: React.FC<{ children: React.ReactNode }> = ({
         setSelectedDatabase: updateDatabase,
         sql,
         setSql,
+        manualForm,
+        setManualForm,
+        joins,
+        setJoins,
       }}
     >
       {children}

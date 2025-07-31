@@ -10,7 +10,7 @@ const DashboardsPage = () => {
   const { dashboardId } = useParams();
   return (
     <div className="bg flex overflow-hidden">
-      <ListArea sidebarActive={sidebarActive} toggleSidebar={toggleSidebar} setIsEdit={setIsEdit} dashboardId={Number(dashboardId)} />
+      <ListArea sidebarActive={sidebarActive} toggleSidebar={toggleSidebar} setIsEdit={setIsEdit} isEdit={isEdit} dashboardId={Number(dashboardId)} />
       {dashboardId ? (
         <MainArea isEdit={isEdit} dashboardId={Number(dashboardId)} />
       ) : (

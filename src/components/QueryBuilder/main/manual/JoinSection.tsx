@@ -21,7 +21,6 @@ const JoinSection: React.FC<JoinSectionProps> = ({
   fetchSchema,
 }) => {
   const joinTypes: JoinType[] = [
-    "JOIN",
     "INNER JOIN",
     "LEFT JOIN",
     "RIGHT JOIN",
