@@ -7,11 +7,16 @@ import { Button } from "../ui/button";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { FaPencil } from "react-icons/fa6";
 import { FaCheck, FaTrash } from "react-icons/fa";
+import { DashboardChart } from "@/types/chart";
+import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../common/ConfirmDialog";
+import { AlertBox } from "../common/AlertBox";
 
 interface ListAreaProps extends SidebarData {
   isEdit: boolean;
   setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
   dashboardId: number | undefined;
+  charts: DashboardChart[];
 }
 
 export const ListArea: React.FC<ListAreaProps> = ({
@@ -20,7 +25,13 @@ export const ListArea: React.FC<ListAreaProps> = ({
   isEdit,
   setIsEdit,
   dashboardId,
+  charts,
 }) => {
+  const navigate = useNavigate();
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+
   const [dashboards, setDashboards] = useState<{ id: number; name: string }[]>(
     []
   );
@@ -65,6 +76,50 @@ export const ListArea: React.FC<ListAreaProps> = ({
     setDashboards((prev) => [...prev, newDashboard]);
     setNewName("");
     setCreatingNew(false);
+  };
+
+  const handleSaveLayout = async () => {
+    const layoutPayload = charts.map((c) => ({
+      chart_id: c.id, // 🔥 explicitly map to `chart_id`
+      x: c.x,
+      y: c.y,
+      width: c.width,
+      height: c.height,
+    }));
+
+    await window.ipcRenderer.invoke(
+      "update-dashboard-layout",
+      dashboardId,
+      layoutPayload
+    );
+    setIsEdit(false);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
+
+  const handleDeleteDashboard = async () => {
+    if (!dashboardId) return;
+
+    try {
+      await window.ipcRenderer.invoke("delete-dashboard", dashboardId);
+
+      // ✅ Remove deleted dashboard from local state
+      const updated = dashboards.filter((d) => d.id !== dashboardId);
+      setDashboards(updated);
+
+      // ✅ Clear selection if deleted
+      if (updated.length > 0) {
+        const nextDashboardId = updated[0].id;
+        navigate(`/dashboard/${nextDashboardId}`);
+      } else {
+        navigate("/dashboard");
+      }
+
+      // ✅ Close confirm dialog
+      setOpenDialog(false);
+    } catch (error) {
+      console.error("Failed to delete dashboard", error);
+    }
   };
 
   return (
@@ -145,34 +200,46 @@ export const ListArea: React.FC<ListAreaProps> = ({
         </div>
       </div>
 
-      {dashboardId && (
-        <div
-          className={`flex items-center gap-2 p-3 ${
-            sidebarActive ? "flex-row" : "flex-col"
-          }`}
-        >
-          {isEdit ? (
-            <button
-              className="py-2.5  text-white rounded-md  transition cursor-pointer px-3 w-full text-sm flex justify-center items-center gap-2 bg-green-500 hover:bg-green-600"
-              onClick={() => setIsEdit((prev) => !prev)}
-            >
-              <FaCheck />
-              {sidebarActive && "Save"}
-            </button>
-          ) : (
-            <button
-              className="btn-primary px-3 w-full text-sm flex justify-center items-center gap-2"
-              onClick={() => setIsEdit((prev) => !prev)}
-            >
-              <FaPencil />
-              {sidebarActive && "Edit"}
-            </button>
+      {dashboardId ? (
+        <div>
+          {showAlert && (
+            <div className="px-3 pb-3">
+              <AlertBox type="success" message="Dashboard layout saved!" />
+            </div>
           )}
-          <button className="btn-outline-danger px-3 w-full text-sm flex justify-center items-center gap-2">
-            <FaTrash />
-            {sidebarActive && "Delete"}
-          </button>
+          <div
+            className={`flex items-center gap-2 p-3 ${
+              sidebarActive ? "flex-row" : "flex-col"
+            }`}
+          >
+            {isEdit ? (
+              <button
+                className="py-2.5  text-white rounded-md  transition cursor-pointer px-3 w-full text-sm flex justify-center items-center gap-2 bg-green-500 hover:bg-green-600"
+                onClick={handleSaveLayout}
+              >
+                <FaCheck />
+                {sidebarActive && "Save"}
+              </button>
+            ) : (
+              <button
+                className="btn-primary px-3 w-full text-sm flex justify-center items-center gap-2"
+                onClick={() => setIsEdit(true)}
+              >
+                <FaPencil />
+                {sidebarActive && "Edit"}
+              </button>
+            )}
+            <button
+              className="btn-outline-danger px-3 w-full text-sm flex justify-center items-center gap-2"
+              onClick={() => setOpenDialog(true)}
+            >
+              <FaTrash />
+              {sidebarActive && "Delete"}
+            </button>
+          </div>
         </div>
+      ) : (
+        <></>
       )}
       {/* Toggle Button */}
       <button
@@ -187,6 +254,13 @@ export const ListArea: React.FC<ListAreaProps> = ({
           <RiSidebarUnfoldLine size={16} />
         )}
       </button>
+      <ConfirmDialog
+        open={openDialog}
+        title="Delete Dashboard?"
+        description="This will remove the dashboard and its linked charts. This action cannot be undone."
+        onCancel={() => setOpenDialog(false)}
+        onConfirm={handleDeleteDashboard}
+      />
     </div>
   );
 };

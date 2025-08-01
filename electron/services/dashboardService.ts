@@ -1,7 +1,10 @@
+// src/electron/services/dashboardService.ts
 import {
   getAllDashboards,
   addDashboard,
   linkChartToDashboard,
+  updateDashboardLayout,
+  deleteDashboardById,
 } from "../db/dashboards";
 
 export const dashboardService = {
@@ -13,4 +16,7 @@ export const dashboardService = {
   },
 
   linkChartToDashboard,
+
+  updateDashboardLayout,
+  deleteDashboardById,
 };

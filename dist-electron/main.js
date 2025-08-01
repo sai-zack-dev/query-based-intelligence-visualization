@@ -26272,18 +26272,56 @@ function linkChartToDashboard(chartId, dashboardId) {
    VALUES (?, ?, ?, ?, ?, ?)`
   ).run(dashboardId, chartId, 0, 0, 4, 4);
 }
+function updateDashboardLayout(dashboardId, layouts) {
+  const db2 = getDatabase();
+  const stmt = db2.prepare(
+    `UPDATE dashboard_charts
+     SET x = ?, y = ?, width = ?, height = ?
+     WHERE dashboard_id = ? AND chart_id = ?`
+  );
+  for (const layout of layouts) {
+    stmt.run(
+      layout.x,
+      layout.y,
+      layout.width,
+      layout.height,
+      dashboardId,
+      layout.chart_id
+    );
+  }
+}
+function deleteDashboardById(id) {
+  const db2 = getDatabase();
+  db2.prepare("DELETE FROM dashboard_charts WHERE dashboard_id = ?").run(id);
+  db2.prepare("DELETE FROM dashboards WHERE id = ?").run(id);
+}
 const dashboardService = {
   getAllDashboards,
   createDashboard(name) {
     const { id } = addDashboard(name);
     return id;
   },
-  linkChartToDashboard
+  linkChartToDashboard,
+  updateDashboardLayout,
+  deleteDashboardById
 };
 function setupIpcHandlers() {
   ipcMain.handle(
     "test-mysql-connection",
     (_, config) => connectionManager.testConnection(config)
+  );
+  ipcMain.handle(
+    "connect-to-database",
+    (_, conn) => connectionManager.connectToDatabase(conn)
+  );
+  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
+  ipcMain.handle(
+    "get-active-connection-meta",
+    () => connectionManager.getActiveConnectionMeta()
+  );
+  ipcMain.handle(
+    "get-database-explorer-data",
+    () => connectionManager.getDatabaseExplorerData()
   );
   ipcMain.handle(
     "save-connection",
@@ -26302,23 +26340,24 @@ function setupIpcHandlers() {
     (_, conn) => connectionService.forceCreateConnection(conn)
   );
   ipcMain.handle("get-connections", () => connectionService.getConnections());
-  ipcMain.handle(
-    "connect-to-database",
-    (_, conn) => connectionManager.connectToDatabase(conn)
-  );
-  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
-  ipcMain.handle(
-    "get-active-connection-meta",
-    () => connectionManager.getActiveConnectionMeta()
-  );
-  ipcMain.handle(
-    "get-database-explorer-data",
-    () => connectionManager.getDatabaseExplorerData()
-  );
   ipcMain.handle("run-sql-query", (_, payload) => queryService.runSQL(payload));
+  ipcMain.handle("save-query", (_, query2) => queryService.saveQuery(query2));
+  ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
+  ipcMain.handle(
+    "delete-query",
+    (_, id) => queryService.deleteQueryById(id)
+  );
+  ipcMain.handle(
+    "get-query-by-id",
+    (_, id) => queryService.getQueryById(id)
+  );
   ipcMain.handle(
     "save-chart",
     (_, chartData) => chartService.saveChart(chartData)
+  );
+  ipcMain.handle(
+    "get-dashboard-charts",
+    async (_, dashboardId) => chartService.getChartsByDashboardId(dashboardId)
   );
   ipcMain.handle("get-dashboards", () => dashboardService.getAllDashboards());
   ipcMain.handle(
@@ -26330,18 +26369,12 @@ function setupIpcHandlers() {
     (_, { chartId, dashboardId }) => dashboardService.linkChartToDashboard(chartId, dashboardId)
   );
   ipcMain.handle(
-    "get-dashboard-charts",
-    async (_, dashboardId) => chartService.getChartsByDashboardId(dashboardId)
-  );
-  ipcMain.handle("save-query", (_, query2) => queryService.saveQuery(query2));
-  ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
-  ipcMain.handle(
-    "delete-query",
-    (_, id) => queryService.deleteQueryById(id)
+    "update-dashboard-layout",
+    (_, dashboardId, layouts) => dashboardService.updateDashboardLayout(dashboardId, layouts)
   );
   ipcMain.handle(
-    "get-query-by-id",
-    (_, id) => queryService.getQueryById(id)
+    "delete-dashboard",
+    (_, dashboardId) => dashboardService.deleteDashboardById(dashboardId)
   );
 }
 function setupAppEvents(createWindowCallback) {

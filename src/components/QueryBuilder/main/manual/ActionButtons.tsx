@@ -36,10 +36,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <div className="flex gap-3">
         {resultData && resultData.length > 0 && (
           <>
-            <button className="btn-outline text-xs flex gap-2">
+            {/* <button className="btn-outline text-xs flex gap-2">
               <MdOutlineFileDownload className="w-5 h-5" />
               Export As
-            </button>
+            </button> */}
             <button
               className="btn-primary text-xs flex gap-2"
               onClick={() =>
