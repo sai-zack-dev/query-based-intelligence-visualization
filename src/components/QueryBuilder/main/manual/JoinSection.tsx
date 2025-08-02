@@ -1,13 +1,12 @@
-// @/components/QueryBuilder/main/manual/JoinSection.tsx
 import React from "react";
 import { FaCircleXmark } from "react-icons/fa6";
 import type { Join, JoinType } from "@/types/querybuilder";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 type JoinSectionProps = {
   joins: Join[];
   setJoins: React.Dispatch<React.SetStateAction<Join[]>>;
   tables: string[];
-  fetchSchema: (db: string, table: string) => void;
   selectedDatabase: string;
   allColumns: string[];
 };
@@ -16,15 +15,11 @@ const JoinSection: React.FC<JoinSectionProps> = ({
   joins,
   setJoins,
   tables,
-  allColumns,
   selectedDatabase,
-  fetchSchema,
+  allColumns,
 }) => {
-  const joinTypes: JoinType[] = [
-    "INNER JOIN",
-    "LEFT JOIN",
-    "RIGHT JOIN",
-  ];
+  const joinTypes: JoinType[] = ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN"];
+  const { schema } = useQueryBuilderContext();
 
   return (
     <div>
@@ -46,6 +41,7 @@ const JoinSection: React.FC<JoinSectionProps> = ({
           + Add JOIN Table
         </button>
       </div>
+
       {joins.map((join, idx) => (
         <div
           key={idx}
@@ -57,7 +53,6 @@ const JoinSection: React.FC<JoinSectionProps> = ({
               onChange={(e) => {
                 const updated = [...joins];
                 updated[idx].type = e.target.value as JoinType;
-
                 setJoins(updated);
               }}
               className="input"
@@ -68,15 +63,13 @@ const JoinSection: React.FC<JoinSectionProps> = ({
                 </option>
               ))}
             </select>
+
             <select
               value={join.table}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const updated = [...joins];
                 updated[idx].table = e.target.value;
                 setJoins(updated);
-                if (selectedDatabase && e.target.value) {
-                  await fetchSchema(selectedDatabase, e.target.value);
-                }
               }}
               className="input"
             >
@@ -124,9 +117,12 @@ const JoinSection: React.FC<JoinSectionProps> = ({
               ))}
             </select>
           </div>
+
           <button
             className="text-red-500 cursor-pointer absolute -top-2 -right-2"
-            onClick={() => setJoins((prev) => prev.filter((_, i) => i !== idx))}
+            onClick={() =>
+              setJoins((prev) => prev.filter((_, i) => i !== idx))
+            }
           >
             <FaCircleXmark className="w-4 h-4" />
           </button>

@@ -1,34 +1,42 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaArrowUp, FaChevronDown } from "react-icons/fa6";
+import { FaArrowUp, FaChevronDown, FaChartArea, FaPlay } from "react-icons/fa6";
 import { LuBot } from "react-icons/lu";
-import { useActiveConnection } from "@/hooks/useActiveConnection";
+import { useNavigate } from "react-router-dom";
+
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 import { useRunQuery } from "@/hooks/useRunQuery";
 import SaveQueryButton from "@/components/common/SaveQueryButton";
 import { ExportButton } from "@/components/common/ExportButton";
-import { Message } from "@/types/message";
 import { CodeBlock } from "@/components/ui/code-block";
-import { FaChartArea, FaPlay } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { Message } from "@/types/message";
 
-type ResponseType = "sql" | "result" | "explanation" | "schema";
+interface ParsedAIResponse {
+  introText: string;
+  codeBlock?: { language: string; code: string };
+  explanationText: string;
+  hasSQL: boolean;
+  hasSchema: boolean;
+}
 
 interface ResultMessage extends Message {
-  responseType?: ResponseType;
+  parsedResponse?: ParsedAIResponse;
   result?: any[];
   sql?: string;
-  schemaData?: any;
+  isQueryResult?: boolean;
 }
 
 export const AiPanel: React.FC = () => {
   const navigate = useNavigate();
+  const { selectedDatabase, schema } = useQueryBuilderContext();
+  const { setSql } = useQueryBuilderContext();
+  const { runQuery } = useRunQuery();
+
   const [messages, setMessages] = useState<ResultMessage[]>([
     {
       id: "1",
       text: "Hello! I'm your AI assistant. How can I help you today?",
       isUser: false,
       timestamp: new Date(),
-      responseType: "explanation",
     },
   ]);
   const [inputText, setInputText] = useState("");
@@ -38,10 +46,6 @@ export const AiPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const { schema, selectedDatabase, fetchFullSchema } = useActiveConnection();
-  const { setSql } = useQueryBuilderContext();
-  const { runQuery } = useRunQuery();
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,47 +61,67 @@ export const AiPanel: React.FC = () => {
     setShowScrollButton(scrollHeight - scrollTop - clientHeight >= 10);
   };
 
-  const determineResponseType = (
-    userMessage: string,
-    aiResponse: string
-  ): ResponseType => {
-    const lowerMessage = userMessage.toLowerCase();
-    const lowerResponse = aiResponse.toLowerCase();
+  const parseAIResponse = (response: string): ParsedAIResponse => {
+    const codeBlockRegex = /```(\w+)\n([\s\S]*?)```/;
+    const match = response.match(codeBlockRegex);
 
-    // Check if it's a schema request
-    if (
-      lowerMessage.includes("structure") ||
-      lowerMessage.includes("schema") ||
-      lowerMessage.includes("table") ||
-      lowerMessage.includes("column")
-    ) {
-      return "schema";
+    let introText = "";
+    let explanationText = "";
+    let codeBlock;
+    let hasSQL = false;
+    let hasSchema = false;
+
+    if (match) {
+      const language = match[1].toLowerCase();
+      const code = match[2].trim();
+
+      introText = response.substring(0, match.index || 0).trim();
+      explanationText = response
+        .substring((match.index || 0) + match[0].length)
+        .trim();
+
+      codeBlock = { language, code };
+
+      if (
+        language === "sql" ||
+        code.toLowerCase().includes("select") ||
+        code.toLowerCase().includes("insert") ||
+        code.toLowerCase().includes("update") ||
+        code.toLowerCase().includes("delete")
+      ) {
+        hasSQL = true;
+      } else if (
+        introText.toLowerCase().includes("schema") ||
+        introText.toLowerCase().includes("structure") ||
+        introText.toLowerCase().includes("table")
+      ) {
+        hasSchema = true;
+      }
+    } else {
+      introText = response;
     }
 
-    // Check if it's a SQL query
-    if (
-      lowerResponse.includes("select") ||
-      lowerResponse.includes("insert") ||
-      lowerResponse.includes("update") ||
-      lowerResponse.includes("delete")
-    ) {
-      return "sql";
-    }
-
-    // Default to explanation
-    return "explanation";
+    return {
+      introText,
+      explanationText,
+      codeBlock,
+      hasSQL,
+      hasSchema,
+    };
   };
 
   const simulateAIResponse = async (userMessage: string) => {
     setIsLoading(true);
     try {
-      await fetchFullSchema(selectedDatabase!);
+      const schemaForDb = schema?.[selectedDatabase!];
+      if (!schemaForDb || Object.keys(schemaForDb).length === 0) {
+        throw new Error("Database schema not loaded. Please wait or refresh.");
+      }
 
-      const schemaForSelectedDb = schema?.[selectedDatabase || ""] || {};
-      const formattedSchema = Object.entries(schemaForSelectedDb)
+      const formattedSchema = Object.entries(schemaForDb)
         .map(
           ([table, columns]) =>
-            `${table}(${columns.map((col) => col.Field).join(", ")})`
+            `${table}(${columns.map((col: any) => col.Field).join(", ")})`
         )
         .join("\n");
 
@@ -105,55 +129,33 @@ export const AiPanel: React.FC = () => {
         userMessage,
         formattedSchema
       );
-      const responseType = determineResponseType(userMessage, aiResponse);
 
-      let result: any[] = [];
-      let finalResponseType = responseType;
+      const parsedResponse = parseAIResponse(aiResponse);
 
-      if (responseType === "sql" && selectedDatabase) {
-        try {
-          result = (await runQuery(selectedDatabase, aiResponse)) || [];
-        } catch (err) {
-          result = [{ Error: "⚠️ Query execution failed." }];
-        }
-      }
-
-      if (responseType === "schema") {
-        const schemaData = schemaForSelectedDb;
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            text: aiResponse,
-            isUser: false,
-            timestamp: new Date(),
-            responseType: "schema",
-            schemaData,
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            text: aiResponse,
-            isUser: false,
-            timestamp: new Date(),
-            responseType: finalResponseType,
-            result,
-            sql: responseType === "sql" ? aiResponse : undefined,
-          },
-        ]);
-      }
-    } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          text: "⚠️ Failed to generate response.",
+          text: aiResponse,
           isUser: false,
           timestamp: new Date(),
-          responseType: "explanation",
+          parsedResponse,
+          sql: parsedResponse.hasSQL ? parsedResponse.codeBlock?.code : undefined,
+        },
+      ]);
+    } catch (err) {
+      console.error("simulateAIResponse error:", err);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to generate response. Please try again.";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: `⚠️ ${msg}`,
+          isUser: false,
+          timestamp: new Date(),
         },
       ]);
     }
@@ -167,17 +169,16 @@ export const AiPanel: React.FC = () => {
     try {
       const result = (await runQuery(selectedDatabase, sql)) || [];
 
-      // Add a new result message
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          text: "Query executed successfully",
+          text: "Query executed successfully.",
           isUser: false,
           timestamp: new Date(),
-          responseType: "result",
           result,
           sql,
+          isQueryResult: true,
         },
       ]);
     } catch (err) {
@@ -188,7 +189,6 @@ export const AiPanel: React.FC = () => {
           text: "⚠️ Query execution failed.",
           isUser: false,
           timestamp: new Date(),
-          responseType: "explanation",
         },
       ]);
     }
@@ -197,6 +197,21 @@ export const AiPanel: React.FC = () => {
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
+
+    const schemaForDb = schema?.[selectedDatabase!];
+    if (!schemaForDb || Object.keys(schemaForDb).length === 0) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: `⚠️ Cannot send message: Schema is not ready.`,
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
@@ -225,63 +240,106 @@ export const AiPanel: React.FC = () => {
   }, [inputText]);
 
   const renderMessageActions = (message: ResultMessage) => {
-    switch (message.responseType) {
-      case "sql":
-        return (
-          <div className="flex gap-2 mt-3">
-            <button
-              onClick={() => message.sql && handleRunQuery(message.sql)}
-              className="btn-primary flex items-center gap-2 text-xs"
-              disabled={isLoading}
-            >
-              <FaPlay />
-              Run Query
-            </button>
-            <SaveQueryButton sql={message.text} />
-          </div>
-        );
-
-      case "result":
-        return (
-          <div className="flex gap-2 mt-3">
-            <ExportButton data={message.result || []} filename="query_result" />
-            <button
-              className="btn-primary flex items-center gap-2 text-xs"
-              onClick={() => {
-                navigate("/chart", {
-                  state: { data: message.result },
-                });
-              }}
-            >
-              <FaChartArea />
-              Generate Chart
-            </button>
-          </div>
-        );
-
-      case "schema":
-        return (
-          <div className="flex gap-2 mt-3">
-            <button className="btn-primary text-xs w-full" onClick={() => {}}>
-              View Full Schema
-            </button>
-          </div>
-        );
-
-      case "explanation":
-      default:
-        return null;
+    if (message.isQueryResult) {
+      return (
+        <div className="flex gap-2 mt-3">
+          <ExportButton data={message.result || []} filename="query_result" />
+          <button
+            className="btn-primary flex items-center gap-2 text-xs"
+            onClick={() => navigate("/chart", { state: { data: message.result } })}
+          >
+            <FaChartArea />
+            Generate Chart
+          </button>
+        </div>
+      );
     }
+
+    if (message.parsedResponse?.hasSQL && message.sql) {
+      return (
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => message.sql && handleRunQuery(message.sql)}
+            className="btn-primary flex items-center gap-2 text-xs"
+            disabled={isLoading}
+          >
+            <FaPlay />
+            Run Query
+          </button>
+          <SaveQueryButton sql={message.sql} />
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const renderMessageContent = (message: ResultMessage) => {
-    if (message.responseType === "sql") {
+    if (message.isQueryResult) {
       return (
-        <CodeBlock
-          language="sql"
-          filename="Generated SQL"
-          code={message.text}
-        />
+        <div>
+          <p className="text-sm leading-relaxed mb-3">{message.text}</p>
+          {message.result && message.result.length > 0 && (
+            <div className="border border-gray-300 rounded-md overflow-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-blue-100 text-gray-700">
+                  <tr>
+                    {Object.keys(message.result[0]).map((key) => (
+                      <th key={key} className="px-3 py-2 font-semibold">
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {message.result.map((row, i) => (
+                    <tr key={i} className="odd:bg-white even:bg-gray-50">
+                      {Object.values(row).map((val, j) => (
+                        <td key={j} className="px-3 py-2">
+                          {String(val)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (message.parsedResponse) {
+      const { introText, codeBlock, explanationText } = message.parsedResponse;
+
+      return (
+        <div>
+          {introText && (
+            <p className="text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+              {introText}
+            </p>
+          )}
+
+          {codeBlock && (
+            <div className="mb-3">
+              <CodeBlock
+                language={codeBlock.language}
+                filename={
+                  codeBlock.language === "sql"
+                    ? "Generated SQL"
+                    : "Database Schema"
+                }
+                code={codeBlock.code}
+              />
+            </div>
+          )}
+
+          {explanationText && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {explanationText}
+            </p>
+          )}
+        </div>
       );
     }
 
@@ -312,7 +370,6 @@ export const AiPanel: React.FC = () => {
                   message.isUser ? "flex-row-reverse space-x-reverse" : ""
                 }`}
               >
-                {/* Avatar */}
                 {!message.isUser && (
                   <div className="rounded-full flex items-center justify-center flex-shrink-0 -translate-y-[10px]">
                     <LuBot className="w-5 h-5 text-gray-600" />
@@ -326,55 +383,17 @@ export const AiPanel: React.FC = () => {
                   }`}
                 >
                   {renderMessageContent(message)}
-
-                  {/* Render query results table for result type */}
-                  {message.responseType === "result" &&
-                    message.result &&
-                    message.result.length > 0 && (
-                      <div className="mt-3 border border-gray-300 rounded-md overflow-auto">
-                        <table className="w-full text-sm text-left">
-                          <thead className="bg-blue-100 text-gray-700">
-                            <tr>
-                              {Object.keys(message.result[0]).map((key) => (
-                                <th
-                                  key={key}
-                                  className="px-3 py-2 font-semibold"
-                                >
-                                  {key}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {message.result.map((row, i) => (
-                              <tr
-                                key={i}
-                                className="odd:bg-white even:bg-gray-50"
-                              >
-                                {Object.values(row).map((value, j) => (
-                                  <td key={j} className="px-3 py-2">
-                                    {String(value)}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
                   <p className="text-xs mt-1 text-gray-300">
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </p>
-                  {/* Render action buttons */}
                   {!message.isUser && renderMessageActions(message)}
                 </div>
               </div>
             </div>
           ))}
-
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex items-start space-x-3">
@@ -397,7 +416,6 @@ export const AiPanel: React.FC = () => {
               </div>
             </div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
       </div>

@@ -1,39 +1,33 @@
 import React, { useEffect } from "react";
 import EntitySection from "./EntitySection";
-import { useActiveConnection } from "@/hooks/useActiveConnection";
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 const DataExplorer: React.FC = () => {
   const {
     databases,
     fetchDatabases,
-    fetchTables,
-    setTables,
-    setSchema,
+    fetchFullSchema,
     loading,
     error,
-  } = useActiveConnection();
-
-  const { selectedDatabase, setSelectedDatabase } = useQueryBuilderContext();
+    selectedDatabase,
+    setSelectedDatabase,
+  } = useQueryBuilderContext();
 
   // Fetch all database names on mount
   useEffect(() => {
     fetchDatabases();
   }, []);
 
-  // ✅ Step 3: Fetch tables when selectedDatabase changes
+  // Fetch schema and tables when selectedDatabase changes
   useEffect(() => {
     if (selectedDatabase) {
-      // ✅ Step 4: Clear old explorer state before fetching new
-      setTables([]);
-      setSchema(null);
-      fetchTables(selectedDatabase);
+      fetchFullSchema(selectedDatabase);
     }
   }, [selectedDatabase]);
 
   const handleDatabaseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const db = e.target.value;
-    setSelectedDatabase(db || null); // if user selects empty option
+    setSelectedDatabase(db || null);
   };
 
   return (

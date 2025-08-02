@@ -18,6 +18,7 @@ export const useRunQuery = () => {
     setLoading(true);
     setError(null);
     setResult(null);
+    console.log(query)
 
     try {
       const response = await window.ipcRenderer.invoke("run-sql-query", {

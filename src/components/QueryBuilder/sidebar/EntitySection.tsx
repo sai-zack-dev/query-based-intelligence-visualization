@@ -1,38 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { useActiveConnection } from "@/hooks/useActiveConnection";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 interface EntitySectionProps {
   selectedDatabase: string | null;
 }
 
 const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
-  const { fetchTables, fetchSchema, tables, schema, loading, error } =
-    useActiveConnection();
+  const {
+    fetchFullSchema,
+    schema,
+    loading,
+    error,
+  } = useQueryBuilderContext();
 
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({});
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (selectedDatabase) {
-      fetchTables(selectedDatabase);
+      fetchFullSchema(selectedDatabase);
       setExpandedSections({});
     }
   }, [selectedDatabase]);
 
-  const toggleSection = async (tableName: string) => {
+  const toggleSection = (tableName: string) => {
     setExpandedSections((prev) => ({
       ...prev,
       [tableName]: !prev[tableName],
     }));
-
-    if (
-      selectedDatabase &&
-      (!schema?.[selectedDatabase] || !schema[selectedDatabase][tableName])
-    ) {
-      await fetchSchema(selectedDatabase, tableName);
-    }
   };
 
   const SectionHeader: React.FC<{
@@ -41,7 +36,7 @@ const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
     onToggle: () => void;
   }> = ({ title, isExpanded, onToggle }) => (
     <div
-      className={`flex items-center cursor-pointer p-2 gap- hover:bg-blue-50 select-none text-blue-500 border-y border-blue-50 ${
+      className={`flex items-center cursor-pointer p-2 gap-2 hover:bg-blue-50 select-none text-blue-500 border-y border-blue-50 ${
         isExpanded ? "bg-blue-50" : "bg-white"
       }`}
       onClick={onToggle}
@@ -62,14 +57,18 @@ const EntitySection: React.FC<EntitySectionProps> = ({ selectedDatabase }) => {
     </div>
   );
 
+  const tables = selectedDatabase
+    ? Object.keys(schema?.[selectedDatabase] || {})
+    : [];
+
   return (
     <div className="mt-3">
       <h3 className="input-label">
         {selectedDatabase ? `Tables (${tables.length})` : "Tables"}
       </h3>
 
-      {loading.tables ? (
-        <p className="text-xs text-gray-500 mt-1">Loading tables…</p>
+      {loading.dbs || !schema?.[selectedDatabase || ""] ? (
+        <p className="text-xs text-gray-500 mt-1">Loading schema…</p>
       ) : error ? (
         <p className="text-xs text-red-500 mt-1">Error: {error}</p>
       ) : tables.length === 0 ? (
