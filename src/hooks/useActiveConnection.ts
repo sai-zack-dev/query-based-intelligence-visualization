@@ -110,6 +110,32 @@ export function useActiveConnection() {
     }
   }, [selectedDatabase]);
 
+  const fetchFullSchema = async (dbName: string) => {
+    try {
+      const res = await window.ipcRenderer.invoke("get-database-explorer-data");
+      const dbData = res.explorer?.[dbName];
+
+      if (res.success && dbData?.tables) {
+        const fullSchema: Record<string, any[]> = {};
+        for (const table of dbData.tables) {
+          const tableSchema = dbData.schema?.[table];
+          if (tableSchema) {
+            fullSchema[table] = tableSchema;
+          }
+        }
+
+        setSchema((prev) => ({
+          ...prev,
+          [dbName]: fullSchema,
+        }));
+      } else {
+        console.warn("No schema or tables found.");
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch full schema:", err.message);
+    }
+  };
+
   return {
     meta,
     databases,
@@ -125,5 +151,6 @@ export function useActiveConnection() {
     setSelectedDatabase,
     setTables,
     setSchema,
+    fetchFullSchema
   };
 }

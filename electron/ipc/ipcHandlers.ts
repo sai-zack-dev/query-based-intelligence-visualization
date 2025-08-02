@@ -5,6 +5,7 @@ import { connectionService } from "../services/connectionService";
 import { queryService } from "../services/queryService";
 import { chartService } from "../services/chartService";
 import { dashboardService } from "../services/dashboardService";
+import { generateSQLFromPrompt } from "../services/aiService";
 
 export function setupIpcHandlers() {
   // Database connection management
@@ -86,5 +87,12 @@ export function setupIpcHandlers() {
 
   ipcMain.handle("delete-dashboard", (_, dashboardId) =>
     dashboardService.deleteDashboardById(dashboardId)
+  );
+
+  ipcMain.handle(
+    "ai-generate-sql",
+    async (_, prompt: string, schema: string) => {
+      return await generateSQLFromPrompt(prompt, schema);
+    }
   );
 }
