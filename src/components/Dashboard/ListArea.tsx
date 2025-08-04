@@ -86,12 +86,12 @@ export const ListArea: React.FC<ListAreaProps> = ({
       width: c.width,
       height: c.height,
     }));
-
     await window.ipcRenderer.invoke(
       "update-dashboard-layout",
       dashboardId,
       layoutPayload
     );
+
     setIsEdit(false);
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 3000);
