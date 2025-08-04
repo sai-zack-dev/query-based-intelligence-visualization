@@ -12,8 +12,8 @@ export interface DashboardChart {
   uuid: string;
   title: string;
   type: ChartName;
-  config: string; // stringified ChartTemplateProps
-  data: string;   // stringified chartData
+  config: string;
+  data: string;   
   x: number;
   y: number;
   width: number;

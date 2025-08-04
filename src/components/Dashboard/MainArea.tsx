@@ -80,7 +80,11 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
             >
               {chart.title}
             </div>
-            {renderChartTemplate(chart)}
+            {renderChartTemplate({
+              type: chart.type,
+              data: JSON.parse(chart.data),
+              config: JSON.parse(chart.config),
+            })}
           </div>
         ))}
       </ReactGridLayout>

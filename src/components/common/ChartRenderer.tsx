@@ -1,7 +1,5 @@
 import BarChartTemplate from "@/components/Chart/template/BarChartTemplate";
 import PieChartTemplate from "@/components/Chart/template/PieChartTemplate";
-// import LineChartTemplate from "@/components/Chart/template/LineChartTemplate";
-// import AreaChartTemplate from "@/components/Chart/template/AreaChartTemplate";
 import { ChartName } from "@/types/chart";
 import { ChartTemplateProps } from "@/types/chart";
 
@@ -15,7 +13,7 @@ export function renderChartTemplate({
 }: {
   type: ChartName;
   data: any[];
-  config: Partial<ChartTemplateProps>;
+  config: ChartTemplateProps;
 }) {
   if (!type || !data || !config) {
     return <div className="text-sm text-red-500 p-2">Chart config missing</div>;
