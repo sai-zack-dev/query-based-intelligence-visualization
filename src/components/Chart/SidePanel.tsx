@@ -26,10 +26,10 @@ const SidePanel = ({ sidebarActive, toggleSidebar }: SidebarData) => {
     },
   ];
   const sidebarClasses = `
-    sidebar
+    sidebar 
     ${
       sidebarActive
-        ? "translate-x-0 min-w-[300px] w-[300px] lg:w-[350px] xl:w-[400px]"
+        ? "translate-x-0 min-w-[300px] w-[300px] lg:w-[350px] xl:w-[400px] pr-0"
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();

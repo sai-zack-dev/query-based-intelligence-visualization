@@ -1,35 +1,49 @@
-import { BarChartConfig, DashboardChart } from "@/types/chart";
-import BarChartTemplate from "../Chart/template/BarChartTemplate";
-import { ChartName } from "@/data/chartMeta";
+import BarChartTemplate from "@/components/Chart/template/BarChartTemplate";
+import PieChartTemplate from "@/components/Chart/template/PieChartTemplate";
+// import LineChartTemplate from "@/components/Chart/template/LineChartTemplate";
+// import AreaChartTemplate from "@/components/Chart/template/AreaChartTemplate";
+import { ChartName } from "@/types/chart";
+import { ChartTemplateProps } from "@/types/chart";
 
-export function renderChartTemplate(chart: DashboardChart) {
-  let config: any = {};
-  let data: any[] = [];
-
-  try {
-    config = JSON.parse(chart.config);
-    data = JSON.parse(chart.data);
-  } catch (err) {
-    return (
-      <div className="text-red-500 p-2 text-sm">
-        Invalid chart data or config.
-      </div>
-    );
+/**
+ * A generic renderer that returns the correct template based on chart type
+ */
+export function renderChartTemplate({
+  type,
+  data,
+  config,
+}: {
+  type: ChartName;
+  data: any[];
+  config: Partial<ChartTemplateProps>;
+}) {
+  if (!type || !data || !config) {
+    return <div className="text-sm text-red-500 p-2">Chart config missing</div>;
   }
-  if (["SimpleBar", "StackedBar"].includes(chart.type)) {
-    return (
-      <BarChartTemplate
-        name={chart.type as ChartName}
-        data={data}
-        xKey={config.xKey}
-        bars={(config.bars as BarChartConfig[]).map((bar) => ({
-          dataKey: bar.dataKey,
-          fill: bar.color,
-          active: bar.active,
-          stackId: chart.type === "StackedBar" ? "a" : undefined,
-          activeBar: chart.type === "SimpleBar" ? true : undefined,
-        }))}
-      />
-    );
+
+  switch (type) {
+    case "TinyBar":
+    case "SimpleBar":
+    case "StackedBar":
+      return (
+        <BarChartTemplate
+          type={type}
+          data={data}
+          config={config}
+        />
+      );
+
+    case "TwoLevelPie":
+    case "StraightAnglePie":
+    case "TwoSimplePie":
+      return (
+        <PieChartTemplate
+          type={type}
+          data={data}
+          config={config}
+        />
+      );
+    default:
+      return <div className="text-sm text-red-500 p-2">Unsupported chart type</div>;
   }
 }

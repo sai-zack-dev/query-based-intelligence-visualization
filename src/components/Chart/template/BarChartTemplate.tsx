@@ -1,4 +1,4 @@
-import { ChartName } from "@/data/chartMeta";
+import { ChartName, ChartTemplateProps } from "@/types/chart";
 import {
   BarChart,
   Bar,
@@ -8,62 +8,38 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
-  Rectangle,
 } from "recharts";
 
-interface BarConfig {
-  dataKey: string;
-  fill: string;
-  active: boolean;
-  stackId?: string;
-  activeBar?: boolean;
-}
-
 interface Props {
-  name: ChartName; // "TinyBar" | "SimpleBar" | "StackedBar"
+  type: ChartName;
   data: any[];
-  bars: BarConfig[];
-  xKey: string;
+  config: Partial<ChartTemplateProps>;
 }
 
-const BarChartTemplate: React.FC<Props> = ({ name, data, bars, xKey }) => {
+const BarChartTemplate: React.FC<Props> = ({ type, data, config }) => {
   return (
-    <div className="h-100 p-3">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          {/* Shared Elements */}
-          <XAxis dataKey={xKey} />
-          <YAxis />
-          <Tooltip />
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data}>
+        {config.strokeDasharray && (
+          <CartesianGrid strokeDasharray={config.strokeDasharray} />
+        )}
+        {config.xAxis && <XAxis dataKey={config.xKey} />}
+        {config.yAxis && <YAxis />}
+        {config.tooltip && <Tooltip />}
+        {config.legend && <Legend />}
 
-          {name !== "TinyBar" && <Legend />}
-          {name !== "TinyBar" && <CartesianGrid strokeDasharray="3 3" />}
-
-          {/* Bars */}
-          {bars
-            .filter((bar) => bar.active)
-            .map((bar, idx) => (
-              <Bar
-                key={bar.dataKey}
-                dataKey={bar.dataKey}
-                fill={bar.fill}
-                stackId={name === "StackedBar" ? bar.stackId || "a" : undefined}
-                activeBar={
-                  name === "SimpleBar" && bar.activeBar
-                    ? {
-                        fill: idx % 2 === 0 ? "pink" : "gold",
-                        stroke: idx % 2 === 0 ? "blue" : "purple",
-                      }
-                    : undefined
-                }
-              />
-            ))}
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+        {config.bars
+          ?.filter((bar) => bar.active)
+          .map((bar, idx) => (
+            <Bar
+              key={bar.dataKey}
+              dataKey={bar.dataKey}
+              fill={bar.fill}
+              stackId={type === "StackedBar" ? bar.stackId || "a" : undefined}
+            />
+          ))}
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
