@@ -38,7 +38,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             Cancel
           </Button>
           <Button onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
-            Confirm
+            Delete
           </Button>
         </DialogFooter>
       </DialogContent>

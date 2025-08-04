@@ -5,6 +5,7 @@ import React from "react";
 import { FaChartArea, FaPlay } from "react-icons/fa";
 import { MdOutlineFileDownload } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { ExportButton } from "@/components/common/ExportButton";
 
 interface ActionButtonsProps {
   disabled: boolean;
@@ -36,10 +37,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <div className="flex gap-3">
         {resultData && resultData.length > 0 && (
           <>
-            <button className="btn-outline text-xs flex gap-2">
-              <MdOutlineFileDownload className="w-5 h-5" />
-              Export As
-            </button>
+            <ExportButton data={resultData || []} filename="query_result" />
             <button
               className="btn-primary text-xs flex gap-2"
               onClick={() =>

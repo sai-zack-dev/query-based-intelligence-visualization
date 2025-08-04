@@ -1,19 +1,24 @@
 Data Connection
-- Excel (5)
+- Excel (1)
 
 Query Builder
-- AI (4)
+- AI (done)
 - Manual form (done)
 - Save Query (done)
-- Use save query and run (1)
+- Use save query and run (done)
+- Export Table (done)
 
 Chart Generation
 - Chart Setting (done)
 - Chart Preview with Query (done)
-- Add different charts (3)
+- Add different charts ()
+- export chart ()
 
 Dashboard
 - UI (Done)
-- Edit (2)
+- Edit (done)
 - Save Dashboard and Chart (done)
 - Dasboard grid (done)
+- Dashboard name uniqueness ()
+- Edit chart name in dashboard edit mode ()
+- export chart ()

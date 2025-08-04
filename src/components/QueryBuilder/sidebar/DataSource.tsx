@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useActiveConnection } from "@/hooks/useActiveConnection";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 import { ConnectionType } from "@/types/connection";
 
 const typeColor: Record<string, string> = {
@@ -11,13 +11,12 @@ const typeColor: Record<string, string> = {
 };
 
 const DataSource: React.FC = () => {
-  const { meta, loading, error, fetchMeta } = useActiveConnection();
+  const { meta, loading, error, fetchMeta } = useQueryBuilderContext();
 
   useEffect(() => {
     fetchMeta();
   }, []);
 
-  // 🟥 No connection fallback
   if (loading.meta) {
     return (
       <div className="pl-6 py-6 text-sm text-gray-500">Loading...</div>
@@ -55,7 +54,6 @@ const DataSource: React.FC = () => {
     );
   }
 
-  // ✅ Destructure and provide fallback for nullables
   const {
     name = "Unnamed Connection",
     type,
@@ -66,7 +64,7 @@ const DataSource: React.FC = () => {
   } = meta;
 
   return (
-    <div className="">
+    <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
         <h2 className="font-semibold text-gray-800">Data Source</h2>
@@ -78,21 +76,18 @@ const DataSource: React.FC = () => {
           <div>
             <h3 className="font-medium text-gray-800">{name}</h3>
 
-            {/* Connection location */}
             {host && port !== null && (
               <p className="text-sm text-gray-500 mt-1">
                 {host}:{port}
               </p>
             )}
 
-            {/* File path for local sources */}
             {file && (
               <p className="text-xs text-gray-500 truncate max-w-[260px]">
                 {file}
               </p>
             )}
 
-            {/* Connection date */}
             {lastUpdate && (
               <p className="text-xs text-gray-400">
                 Connected on {new Date(lastUpdate).toLocaleString()}
@@ -100,7 +95,6 @@ const DataSource: React.FC = () => {
             )}
           </div>
 
-          {/* Type Tag */}
           <div
             className={`text-sm px-3 py-1 rounded-md ${
               typeColor[type?.toLowerCase()] || "bg-gray-100 text-gray-600"

@@ -1,25 +1,18 @@
+// MainArea.tsx
 import { DashboardChart } from "@/types/chart";
-import { useEffect, useState } from "react";
 import RGL, { WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { renderChartTemplate } from "@/components/common/ChartRenderer";
+
 interface MainAreaProps {
   isEdit: boolean;
-  dashboardId: number | undefined;
+  charts: DashboardChart[];
+  setCharts: React.Dispatch<React.SetStateAction<DashboardChart[]>>;
 }
 
-const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
+const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
   const ReactGridLayout = WidthProvider(RGL);
-  const [charts, setCharts] = useState<DashboardChart[]>([]);
-
-  useEffect(() => {
-    if (!dashboardId) return;
-    window.ipcRenderer
-      .invoke("get-dashboard-charts", Number(dashboardId))
-      .then((res) => setCharts(res))
-      .catch((err) => console.error("Failed to load charts", err));
-  }, [dashboardId]);
 
   const layout: Layout[] = charts.map((chart) => ({
     i: chart.id.toString(),
@@ -28,6 +21,39 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
     w: chart.width,
     h: chart.height,
   }));
+
+  const handleLayoutChange = (layout: Layout[]) => {
+    let hasChanged = false;
+
+    const updated = charts.map((chart) => {
+      const match = layout.find((item) => item.i === chart.id.toString());
+      if (!match) return chart;
+
+      const updatedChart = {
+        ...chart,
+        x: match.x,
+        y: match.y,
+        width: match.w,
+        height: match.h,
+      };
+
+      if (
+        chart.x !== updatedChart.x ||
+        chart.y !== updatedChart.y ||
+        chart.width !== updatedChart.width ||
+        chart.height !== updatedChart.height
+      ) {
+        hasChanged = true;
+      }
+
+      return updatedChart;
+    });
+
+    if (hasChanged) {
+      setCharts(updated);
+    }
+  };
+
   return (
     <div className="relative overflow-y-auto flex-grow pt-3 px-2 max-h-dvh">
       <ReactGridLayout
@@ -40,6 +66,7 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
         isDraggable={isEdit}
         draggableHandle=".drag-handle"
         useCSSTransforms={true}
+        onLayoutChange={handleLayoutChange}
       >
         {charts.map((chart) => (
           <div
@@ -48,13 +75,16 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, dashboardId }) => {
           >
             <div
               className={`bg-blue-100 text-blue-500 font-bold text-sm text-center p-2 drag-handle ${
-                isEdit && "cursor-move"
+                isEdit ? "cursor-move" : ""
               }`}
             >
               {chart.title}
             </div>
-            {renderChartTemplate(chart)}
-            <p>{/* {chart.config} */}</p>
+            {renderChartTemplate({
+              type: chart.type,
+              data: JSON.parse(chart.data),
+              config: JSON.parse(chart.config),
+            })}
           </div>
         ))}
       </ReactGridLayout>

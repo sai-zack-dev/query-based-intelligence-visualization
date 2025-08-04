@@ -5,14 +5,29 @@ import { connectionService } from "../services/connectionService";
 import { queryService } from "../services/queryService";
 import { chartService } from "../services/chartService";
 import { dashboardService } from "../services/dashboardService";
+import { generateSQLFromPrompt } from "../services/aiService";
 
 export function setupIpcHandlers() {
-  // MySQL connection testing
+  // Database connection management
   ipcMain.handle("test-mysql-connection", (_, config) =>
     connectionManager.testConnection(config)
   );
 
-  // Connection management
+  ipcMain.handle("connect-to-database", (_, conn) =>
+    connectionManager.connectToDatabase(conn)
+  );
+
+  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
+
+  ipcMain.handle("get-active-connection-meta", () =>
+    connectionManager.getActiveConnectionMeta()
+  );
+
+  ipcMain.handle("get-database-explorer-data", () =>
+    connectionManager.getDatabaseExplorerData()
+  );
+
+  // Connection service
   ipcMain.handle("save-connection", (_, conn) =>
     connectionService.saveConnection(conn)
   );
@@ -31,43 +46,9 @@ export function setupIpcHandlers() {
 
   ipcMain.handle("get-connections", () => connectionService.getConnections());
 
-  // Database connection management
-  ipcMain.handle("connect-to-database", (_, conn) =>
-    connectionManager.connectToDatabase(conn)
-  );
-
-  ipcMain.handle("disconnect-database", () => connectionManager.disconnect());
-
-  ipcMain.handle("get-active-connection-meta", () =>
-    connectionManager.getActiveConnectionMeta()
-  );
-
-  // Database exploration
-  ipcMain.handle("get-database-explorer-data", () =>
-    connectionManager.getDatabaseExplorerData()
-  );
-
+  // Query Service
   ipcMain.handle("run-sql-query", (_, payload) => queryService.runSQL(payload));
 
-  ipcMain.handle("save-chart", (_, chartData) =>
-    chartService.saveChart(chartData)
-  );
-
-  ipcMain.handle("get-dashboards", () => dashboardService.getAllDashboards());
-
-  ipcMain.handle("create-dashboard", (_, name) =>
-    dashboardService.createDashboard(name)
-  );
-
-  ipcMain.handle("link-chart-to-dashboard", (_, { chartId, dashboardId }) =>
-    dashboardService.linkChartToDashboard(chartId, dashboardId)
-  );
-
-  ipcMain.handle("get-dashboard-charts", async (_, dashboardId: number) =>
-    chartService.getChartsByDashboardId(dashboardId)
-  );
-
-  // Query saving and loading
   ipcMain.handle("save-query", (_, query) => queryService.saveQuery(query));
 
   ipcMain.handle("get-saved-queries", () => queryService.getAllQueries());
@@ -78,5 +59,40 @@ export function setupIpcHandlers() {
 
   ipcMain.handle("get-query-by-id", (_, id: number) =>
     queryService.getQueryById(id)
+  );
+
+  // Chart Service
+  ipcMain.handle("save-chart", (_, chartData) =>
+    chartService.saveChart(chartData)
+  );
+
+  ipcMain.handle("get-dashboard-charts", async (_, dashboardId: number) =>
+    chartService.getChartsByDashboardId(dashboardId)
+  );
+
+  //Dashboard Service
+  ipcMain.handle("get-dashboards", () => dashboardService.getAllDashboards());
+
+  ipcMain.handle("create-dashboard", (_, name) =>
+    dashboardService.createDashboard(name)
+  );
+
+  ipcMain.handle("link-chart-to-dashboard", (_, { chartId, dashboardId }) =>
+    dashboardService.linkChartToDashboard(chartId, dashboardId)
+  );
+
+  ipcMain.handle("update-dashboard-layout", (_, dashboardId, layouts) =>
+    dashboardService.updateDashboardLayout(dashboardId, layouts)
+  );
+
+  ipcMain.handle("delete-dashboard", (_, dashboardId) =>
+    dashboardService.deleteDashboardById(dashboardId)
+  );
+
+  ipcMain.handle(
+    "ai-generate-sql",
+    async (_, prompt: string, schema: string) => {
+      return await generateSQLFromPrompt(prompt, schema);
+    }
   );
 }

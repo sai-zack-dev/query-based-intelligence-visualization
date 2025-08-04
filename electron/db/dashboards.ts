@@ -53,3 +53,33 @@ export function getChartsByDashboardID(id: string) {
       data: JSON.parse(c.data),
     }));
 }
+
+export function updateDashboardLayout(
+  dashboardId: number,
+  layouts: { chart_id: number; x: number; y: number; width: number; height: number }[]
+): void {
+  const db = getDatabase();
+
+  const stmt = db.prepare(
+    `UPDATE dashboard_charts
+     SET x = ?, y = ?, width = ?, height = ?
+     WHERE dashboard_id = ? AND chart_id = ?`
+  );
+
+  for (const layout of layouts) {
+    stmt.run(
+      layout.x,
+      layout.y,
+      layout.width,
+      layout.height,
+      dashboardId,
+      layout.chart_id
+    );
+  }
+}
+
+export function deleteDashboardById(id: number): void {
+  const db = getDatabase();
+  db.prepare("DELETE FROM dashboard_charts WHERE dashboard_id = ?").run(id);
+  db.prepare("DELETE FROM dashboards WHERE id = ?").run(id);
+}

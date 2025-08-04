@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChartTemplateProps } from "@/types/chart";
 
 interface Props {
   open: boolean;
@@ -18,7 +19,7 @@ interface Props {
   chart: {
     title: string;
     type: string | null;
-    config: Record<string, any>;
+    config: ChartTemplateProps;
     data: any[];
   };
 }

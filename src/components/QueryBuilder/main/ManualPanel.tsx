@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { useActiveConnection } from "@/hooks/useActiveConnection";
+import {
+  ColumnSelection,
+  Filter,
+  Join,
+  OrderByItem,
+} from "@/types/querybuilder";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 import { useRunQuery } from "@/hooks/useRunQuery";
+
 import SelectSection from "@/components/QueryBuilder/main/manual/SelectSection";
 import FromSection from "@/components/QueryBuilder/main/manual/FromSection";
 import JoinSection from "@/components/QueryBuilder/main/manual/JoinSection";
@@ -10,60 +17,38 @@ import OrderBySection from "@/components/QueryBuilder/main/manual/OrderBySection
 import LimitSection from "@/components/QueryBuilder/main/manual/LimitSection";
 import ActionButtons from "@/components/QueryBuilder/main/manual/ActionButtons";
 import ResultSection from "@/components/QueryBuilder/main/manual/ResultSection";
-import {
-  ColumnSelection,
-  Join,
-  Filter,
-  OrderByItem,
-  JoinType,
-} from "@/types/querybuilder";
-import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 interface ManualPanelProps {
   selectedDatabase: string | null;
 }
 
-export const ManualPanel: React.FC<ManualPanelProps> = ({
-  selectedDatabase,
-}) => {
-  const { sql, setSql, manualForm, setManualForm, joins, setJoins } = useQueryBuilderContext();
+export const ManualPanel: React.FC<ManualPanelProps> = ({ selectedDatabase }) => {
+  const {
+    sql,
+    setSql,
+    manualForm,
+    setManualForm,
+    joins,
+    setJoins,
+    tables,
+    schema,
+    loading,
+  } = useQueryBuilderContext();
+
+  const { runQuery, result, loading: queryLoading, error } = useRunQuery();
 
   const [selectAll, setSelectAll] = useState<boolean>(true);
-  const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>(
-    []
-  );
+  const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>([]);
   const [fromTable, setFromTable] = useState<string>("");
   const [filters, setFilters] = useState<Filter[]>([]);
   const [groupBy, setGroupBy] = useState<string[]>([]);
   const [orderBy, setOrderBy] = useState<OrderByItem[]>([]);
   const [limit, setLimit] = useState<number>();
+
   const groupableOptions = columnSelections.map((c) => c.alias || c.name);
-  const orderableOptions = columnSelections.map((col) => col.alias || col.name);
-
-  const { fetchTables, fetchSchema, tables, schema, loading } =
-    useActiveConnection();
-  const { runQuery, result, loading: queryLoading, error } = useRunQuery();
+  const orderableOptions = columnSelections.map((c) => c.alias || c.name);
 
   useEffect(() => {
-    if (selectedDatabase) fetchTables(selectedDatabase);
-  }, [selectedDatabase]);
-
-  useEffect(() => {
-    if (fromTable && selectedDatabase) fetchSchema(selectedDatabase, fromTable);
-  }, [fromTable]);
-
-  useEffect(() => {
-    if (selectedDatabase) {
-      joins.forEach((join) => {
-        if (join.table && !schema?.[selectedDatabase]?.[join.table]) {
-          fetchSchema(selectedDatabase, join.table);
-        }
-      });
-    }
-  }, [joins]);
-
-  useEffect(() => {
-    // console.log(manualForm);
     if (manualForm) {
       setFromTable(manualForm.table);
       setSelectAll(manualForm.columns.includes("*"));
@@ -77,7 +62,7 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
 
               let func: "" | "COUNT" | "SUM" | "DATE_FORMAT" = "";
               let name = expr;
-              let format: string | undefined = undefined;
+              let format: string | undefined;
 
               if (/^COUNT\(.+\)$/i.test(expr)) {
                 func = "COUNT";
@@ -99,9 +84,7 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
       if (manualForm.limit) setLimit(Number(manualForm.limit));
       if (manualForm.groupBy) setGroupBy(manualForm.groupBy);
       if (manualForm.orderBy) setOrderBy(manualForm.orderBy);
-      if (manualForm.joins) {
-        setJoins(manualForm.joins);
-      }
+      if (manualForm.joins) setJoins(manualForm.joins);
 
       setManualForm(null);
     }
@@ -205,13 +188,12 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
         }}
       />
       <FromSection
-        {...{ fromTable, setFromTable, tables, loading: loading.tables }}
+        {...{ fromTable, setFromTable, tables, loading: loading.dbs || tables.length === 0 }}
       />
       <JoinSection
         joins={joins}
         setJoins={setJoins}
         tables={tables}
-        fetchSchema={fetchSchema}
         selectedDatabase={selectedDatabase || ""}
         allColumns={allColumns}
       />
@@ -222,11 +204,11 @@ export const ManualPanel: React.FC<ManualPanelProps> = ({
       <OrderBySection
         orderBy={orderBy}
         setOrderBy={setOrderBy}
-        orderableOptions={orderableOptions} // ✅ fixed
+        orderableOptions={orderableOptions}
       />
       <LimitSection {...{ limit, setLimit }} />
       <ActionButtons
-        disabled={queryLoading || loading.tables || loading.schema}
+        disabled={queryLoading}
         onRun={handleRunQuery}
         resultData={result ?? undefined}
       />
