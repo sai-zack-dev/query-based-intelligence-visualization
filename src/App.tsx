@@ -24,8 +24,16 @@ const App = () => (
           </MainLayout>
         }
       />
-      <Route path="/chart" element={<ChartGenerationPage />} />
+      <Route
+        path="/chart"
+        element={
+          <MainLayout>
+            <ChartGenerationPage sidebarActive={false} toggleSidebar={() => {}} />
+          </MainLayout>
+        }
+      />
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard/:dashboardId" element={<DashboardPage />} />
     </Routes>
   </BrowserRouter>
 );

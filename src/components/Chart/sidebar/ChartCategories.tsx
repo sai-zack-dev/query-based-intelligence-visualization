@@ -1,0 +1,47 @@
+import { chartCategories } from "@/utils/chartMeta";
+import { useChart } from "@/context/ChartContext";
+
+export default function ChartCategories() {
+  const {
+    activeCategoryId,
+    setActiveCategoryId,
+  } = useChart();
+
+  return (
+    <div className="pr-4">
+      <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
+        <h2 className="font-semibold text-gray-800">Chart Categories</h2>
+      </div>
+      <nav className="pl-10" role="tablist" aria-label="Chart categories">
+        {chartCategories.map((cat) => {
+          const isActive = activeCategoryId === cat.categoryId;
+          const Icon = cat.categoryIcon;
+
+          return (
+            <button
+              key={cat.categoryId}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`category-${cat.categoryId}`}
+              className={`w-full flex items-center gap-2 text-left px-4 py-2 rounded-md transition cursor-pointer
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}
+              onClick={() => {
+                const el = document.getElementById(`category-${cat.categoryId}`);
+                if (el)
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                setActiveCategoryId(cat.categoryId);
+              }}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{cat.categoryTitle}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}

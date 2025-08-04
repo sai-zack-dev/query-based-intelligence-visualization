@@ -6,28 +6,25 @@ import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
 import SidebarTab from "@/components/common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
+import { ConnectionData, ConnectionType } from "@/types/connection";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
-import { CURRENT_CONNECTION, DATABASES } from "@/mock/MockData";
 
 const sidebarTabs = [
   {
     id: "data_exp",
     icon: FiDatabase,
     activeIcon: FaDatabase,
-    label: "Data Explorer",
   },
   {
     id: "saved_query",
     icon: FiBookmark,
     activeIcon: FaBookmark,
-    label: "Saved Queries",
   },
   {
     id: "data_source",
     icon: RiInformation2Line,
     activeIcon: RiInformation2Fill,
-    label: "Data Source",
   },
 ];
 
@@ -35,11 +32,15 @@ export const LeftPanel: React.FC<SidebarData> = ({
   sidebarActive,
   toggleSidebar,
 }) => {
+  const [sidebarTab, setSidebarTab] = useState<
+    "data_exp" | "saved_query" | "data_source"
+  >("data_exp");
+
   const sidebarClasses = `
     sidebar
     ${
       sidebarActive
-        ? "translate-x-0 min-w-[300px] w-[300px] lg:w-[400px] xl:w-[500px]"
+        ? "translate-x-0 min-w-[300px] w-[300px] lg:min-w-[350px] xl:min-w-[400px]"
         : "-translate-x-full w-0 overflow-hidden"
     }
   `.trim();
@@ -48,30 +49,21 @@ export const LeftPanel: React.FC<SidebarData> = ({
     sidebar-toggle
     ${
       sidebarActive
-        ? `translate-x-[250px] lg:translate-x-[350px] xl:translate-x-[450px]`
-        : "shadow translate-x-0"
+        ? `translate-x-[250px] lg:translate-x-[300px] xl:translate-x-[350px]`
+        : "shadow translate-x-0 bg-white"
     }
   `.trim();
-
-  const [sidebarTab, setSidebarTab] = useState<
-    "data_exp" | "saved_query" | "data_source"
-  >("data_exp");
 
   return (
     <>
       {/* Sidebar Panel */}
       <div className={sidebarClasses}>
-        {/* Header */}
+        {/* Sidebar Content */}
         {sidebarActive && (
           <>
-            {/* Sidebar Content */}
-            {sidebarTab === "data_exp" && (
-              <DataExplorer databases={DATABASES} />
-            )}
+            {sidebarTab === "data_exp" && <DataExplorer />}
             {sidebarTab === "saved_query" && <SavedQuery />}
-            {sidebarTab === "data_source" && (
-              <DataSource connection={CURRENT_CONNECTION} />
-            )}
+            {sidebarTab === "data_source" && <DataSource />}
           </>
         )}
       </div>
@@ -92,6 +84,7 @@ export const LeftPanel: React.FC<SidebarData> = ({
             onSelect={(tabId: string) =>
               setSidebarTab(tabId as "data_exp" | "saved_query" | "data_source")
             }
+            isDisabled={false}
           />
         ))}
       </div>

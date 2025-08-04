@@ -1,23 +1,33 @@
-import React from "react";
+import React, { useEffect } from "react";
 import EntitySection from "./EntitySection";
-import { DatabaseOption } from "../../../types/database";
+import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
-interface DataExplorerProps {
-  selectedDatabase?: string;
-  onDatabaseChange?: (database: string) => void;
-  databases: DatabaseOption[];
-}
+const DataExplorer: React.FC = () => {
+  const {
+    databases,
+    fetchDatabases,
+    fetchFullSchema,
+    loading,
+    error,
+    selectedDatabase,
+    setSelectedDatabase,
+  } = useQueryBuilderContext();
 
-const DataExplorer: React.FC<DataExplorerProps> = ({
-  selectedDatabase = "",
-  onDatabaseChange,
-  databases,
-}) => {
-  const handleDatabaseChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = event.target.value;
-    onDatabaseChange?.(value);
+  // Fetch all database names on mount
+  useEffect(() => {
+    fetchDatabases();
+  }, []);
+
+  // Fetch schema and tables when selectedDatabase changes
+  useEffect(() => {
+    if (selectedDatabase) {
+      fetchFullSchema(selectedDatabase);
+    }
+  }, [selectedDatabase]);
+
+  const handleDatabaseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const db = e.target.value;
+    setSelectedDatabase(db || null);
   };
 
   return (
@@ -25,28 +35,39 @@ const DataExplorer: React.FC<DataExplorerProps> = ({
       <div className="flex items-center justify-between mb-4 border-b pb-3 border-gray-200">
         <h2 className="font-semibold text-gray-800">Data Explorer</h2>
       </div>
+
       <div className="flex flex-col gap-4 pl-10">
         <form className="flex flex-col space-y-3">
           <div>
             <label className="input-label" htmlFor="database-select">
               Database
             </label>
+
             <select
               id="database-select"
               className="input"
-              value={selectedDatabase}
+              value={selectedDatabase ?? ""}
               onChange={handleDatabaseChange}
+              disabled={loading.dbs}
             >
               <option value="">Select database</option>
               {databases.map((db) => (
-                <option key={db.value} value={db.value}>
-                  {db.label}
+                <option key={db} value={db}>
+                  {db}
                 </option>
               ))}
             </select>
+
+            {loading.dbs && (
+              <p className="text-xs text-gray-500 mt-1">Loading databases…</p>
+            )}
+            {error && (
+              <p className="text-xs text-red-500 mt-1">Error: {error}</p>
+            )}
           </div>
         </form>
-        <EntitySection />
+
+        <EntitySection selectedDatabase={selectedDatabase} />
       </div>
     </>
   );

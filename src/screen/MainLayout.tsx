@@ -16,7 +16,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="bg pt-25">
+    <div className="bg pt-25 overflow-hidden">
       <Navbar />
       <div className="flex gap-6 items-start">
         {React.cloneElement(children, sidebarData)}

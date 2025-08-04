@@ -4,8 +4,8 @@ export interface ConnectionData {
   type: ConnectionType;
   host: string | null;
   port: number | null;
-  file: string | null;
-  date: string;
+  file: string | null; // stored as JSON string (e.g., '["file1.xlsx", "file2.xlsx"]')
+  date: string | null;
 }
 
 export interface FormData {

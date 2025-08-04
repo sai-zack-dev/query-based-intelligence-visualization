@@ -12,6 +12,10 @@
     @apply px-6 py-2.5 border border-blue-400 text-blue-400 rounded-md hover:bg-blue-50 transition cursor-pointer;
   }
 
+  .btn-outline-danger {
+    @apply px-6 py-2.5 border bg-red-100 text-red-600 border-red-300 rounded-md hover:bg-red-200 transition cursor-pointer;
+  }
+
   .bg {
     @apply min-h-screen w-full bg-gradient-to-br from-blue-100 via-white to-blue-100;
   }
@@ -37,11 +41,11 @@
   }
 
   .sidebar-toggle {
-    @apply absolute bg-white mx-2 p-3 rounded-full transition-all duration-300 hidden sm:flex left-0 h-10 w-10 items-center justify-center;
+    @apply absolute mx-2 p-3 rounded-full transition-all duration-300 hidden sm:flex left-0 h-10 w-10 items-center justify-center cursor-pointer;
   }
 
   .bubble-wrap {
-    @apply shadow-[inset_0_0_8px_0_#3B82F6] text-blue-500 bg-gray-50;
+    @apply shadow-[inset_0_0_8px_0_#3B82F6] bg-gray-50;
   }
 
   .inverted-bubble-wrap {
