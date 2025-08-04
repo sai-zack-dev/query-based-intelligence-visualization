@@ -4,7 +4,9 @@ import RGL, { WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { renderChartTemplate } from "@/components/common/ChartRenderer";
-
+import { FaTrash } from "react-icons/fa";
+import ConfirmDialog from "../common/ConfirmDialog";
+import { useState } from "react";
 interface MainAreaProps {
   isEdit: boolean;
   charts: DashboardChart[];
@@ -13,7 +15,10 @@ interface MainAreaProps {
 
 const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
   const ReactGridLayout = WidthProvider(RGL);
-
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [chartToDelete, setChartToDelete] = useState<DashboardChart | null>(
+    null
+  );
   const layout: Layout[] = charts.map((chart) => ({
     i: chart.id.toString(),
     x: chart.x,
@@ -74,17 +79,18 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
             className="bg-white rounded-lg shadow overflow-hidden border border-blue-300"
           >
             <div
-              className={`bg-blue-100 text-blue-500 font-bold text-sm text-center p-2 drag-handle ${
+              className={`bg-blue-100 text-blue-500 text-sm font-bold p-2 drag-handle flex justify-center items-center ${
                 isEdit ? "cursor-move" : ""
               }`}
-            >
-              {chart.title}
+            >{chart.title}
             </div>
-            {renderChartTemplate({
-              type: chart.type,
-              data: JSON.parse(chart.data),
-              config: JSON.parse(chart.config),
-            })}
+            <div style={{ height: `${chart.height * 10}vh` }}>
+              {renderChartTemplate({
+                type: chart.type,
+                data: JSON.parse(chart.data),
+                config: JSON.parse(chart.config),
+              })}
+            </div>
           </div>
         ))}
       </ReactGridLayout>
