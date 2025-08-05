@@ -180,7 +180,38 @@ export default function SettingForms({ chartType }: Props) {
               ))}
             </select>
           </div>
-
+          <div className="flex gap-3">
+            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
+              <label className="input-label" htmlFor="tooltip">
+                Tooltips
+              </label>
+              <Switch
+                className="data-[state=checked]:bg-green-500"
+                onCheckedChange={(checked) =>
+                  setChartConfig((prev) => ({
+                    ...prev!,
+                    tooltip: checked,
+                  }))
+                }
+                id="tooltip"
+              />
+            </label>
+            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
+              <label className="input-label" htmlFor="legend">
+                Legend
+              </label>
+              <Switch
+                className="data-[state=checked]:bg-green-500"
+                onCheckedChange={(checked) =>
+                  setChartConfig((prev) => ({
+                    ...prev!,
+                    legend: checked,
+                  }))
+                }
+                id="legend"
+              />
+            </label>
+          </div>
           <div>
             <label className="input-label">Bar</label>
             <select
@@ -240,39 +271,6 @@ export default function SettingForms({ chartType }: Props) {
               ))}
             </div>
           )}
-
-          <div className="flex gap-3">
-            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
-              <label className="input-label" htmlFor="tooltip">
-                Tooltips
-              </label>
-              <Switch
-                className="data-[state=checked]:bg-green-500"
-                onCheckedChange={(checked) =>
-                  setChartConfig((prev) => ({
-                    ...prev!,
-                    tooltip: checked,
-                  }))
-                }
-                id="tooltip"
-              />
-            </label>
-            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
-              <label className="input-label" htmlFor="legend">
-                Legend
-              </label>
-              <Switch
-                className="data-[state=checked]:bg-green-500"
-                onCheckedChange={(checked) =>
-                  setChartConfig((prev) => ({
-                    ...prev!,
-                    legend: checked,
-                  }))
-                }
-                id="legend"
-              />
-            </label>
-          </div>
         </>
         // xKey => select and check visibility
         // yAxis => select and check visibility

@@ -19,7 +19,7 @@ export async function initDatabase(): Promise<void> {
       port TEXT DEFAULT NULL,
       username TEXT DEFAULT NULL,
       database TEXT DEFAULT NULL,
-      files TEXT DEFAULT NULL
+      file TEXT DEFAULT NULL
     );
     
     CREATE TABLE IF NOT EXISTS charts (
@@ -27,8 +27,8 @@ export async function initDatabase(): Promise<void> {
       uuid TEXT NOT NULL,
       title TEXT NOT NULL,
       type TEXT NOT NULL,
-      config TEXT,
-      data TEXT
+      config TEXT NOT NULL,
+      data TEXT NOT NULL 
     );
 
     CREATE TABLE IF NOT EXISTS dashboards (

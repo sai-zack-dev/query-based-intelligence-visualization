@@ -262,6 +262,7 @@ const SavedQuery: React.FC = () => {
                           dangerouslySetInnerHTML={{
                             __html: formatSQL(query.sql),
                           }}
+                          className="text-pretty"
                         />
                       </pre>
                     </div>

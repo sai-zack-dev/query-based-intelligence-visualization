@@ -1,12 +1,11 @@
 // electron/ipc/ipcHandlers.ts - IPC handlers setup
-import { ipcMain, app } from "electron";
+import { ipcMain } from "electron";
 import { connectionManager } from "../services/connectionManager";
 import { connectionService } from "../services/connectionService";
 import { queryService } from "../services/queryService";
 import { chartService } from "../services/chartService";
 import { dashboardService } from "../services/dashboardService";
 import { generateSQLFromPrompt } from "../services/aiService";
-import { parseExcelFiles } from "../utils/parseExcel";
 
 export function setupIpcHandlers() {
   // Database connection management
@@ -90,25 +89,10 @@ export function setupIpcHandlers() {
     dashboardService.deleteDashboardById(dashboardId)
   );
 
-  // AI Integration
   ipcMain.handle(
     "ai-generate-sql",
     async (_, prompt: string, schema: string) => {
       return await generateSQLFromPrompt(prompt, schema);
     }
   );
-
-  // Excel Importing
-  ipcMain.handle("test-excel-connection", (_, filePaths: string[]) => {
-    try {
-      const schema = parseExcelFiles(filePaths);
-      return { success: true, schema };
-    } catch (err: any) {
-      return { success: false, message: err.message };
-    }
-  });
-
-  ipcMain.handle("get-user-data-path", () => {
-    return app.getPath("userData");
-  });
 }

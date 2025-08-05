@@ -1,40 +1,24 @@
 import React from "react";
-import { ConnectionData, ConnectionType } from "@/types/connection";
-import { useConnectionForm } from "@/hooks/useConnectionForm";
-import { AlertBox } from "@/components/common/AlertBox";
+import { useDataConnection } from "@/context/DataConnectionContext";
+import { AlertBox, AlertType } from "@/components/common/AlertBox";
 import { ConnectionTypeSelector } from "./main/ConnectionTypeSelector";
 import { ConnectionNameInput } from "./main/ConnectionNameInput";
 import { ConnectionInputs } from "./main/ConnectionInputs";
 import { ConnectionFormButtons } from "./main/ConnectionFormButtons";
-import { DialogType } from "@/hooks/useConnectionForm";
+import { ConnectionType } from "@/types/connection";
 
-interface Props {
-  selectedConnection: ConnectionData | null;
-  onTypeChange?: (type: ConnectionType) => void;
-  onDialogTrigger?: (
-    type: DialogType,
-    title: string,
-    message: string,
-    onAction?: (action: string) => void
-  ) => void;
-}
-
-export const ConnectionForm: React.FC<Props> = ({
-  selectedConnection,
-  onTypeChange,
-  onDialogTrigger,
-}) => {
+export const ConnectionForm: React.FC = () => {
   const {
     connectionType,
     setConnectionType,
-    fileNames,
-    setFileNames,
     formData,
     setFormData,
+    fileNames,
+    setFileNames,
     status,
     handleTestConnection,
     handleSubmit,
-  } = useConnectionForm(selectedConnection, onDialogTrigger); // <-- Pass dialog trigger
+  } = useDataConnection();
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement> | File[]
@@ -42,18 +26,15 @@ export const ConnectionForm: React.FC<Props> = ({
     const files = Array.isArray(e)
       ? e
       : Array.from(e.target.files || []);
-  
     setFileNames(files.map((f) => f.name));
   };
-  
 
   const handleFormChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData((prev: FormData) => ({ ...prev, [key]: value }));
   };
 
   const handleTypeChange = (type: ConnectionType) => {
     setConnectionType(type);
-    onTypeChange?.(type);
   };
 
   const handleNameChange = (name: string) => {
@@ -90,7 +71,7 @@ export const ConnectionForm: React.FC<Props> = ({
         )}
 
         {status.type && (
-          <AlertBox type={status.type} message={status.message} />
+          <AlertBox type={status.type as AlertType} message={status.message} />
         )}
 
         {connectionType && (

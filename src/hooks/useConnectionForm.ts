@@ -73,82 +73,38 @@ export const useConnectionForm = (
 
   const handleTestConnection = async () => {
     try {
-      if (connectionType === "mysql") {
-        const response = await window.ipcRenderer.invoke(
-          "test-mysql-connection",
-          {
-            host: formData.host,
-            port: formData.port,
-            username: formData.username,
-            password: formData.password,
-            database: formData.database,
-          }
-        );
-        if (response.success) {
-          setStatus({ type: "success", message: "Connected to the database." });
-        } else {
-          setStatus({
-            type: "error",
-            message: response.message || "Connection failed.",
-          });
+      const response = await window.ipcRenderer.invoke(
+        "test-mysql-connection",
+        {
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          database: formData.database,
         }
-      }
-
-      if (connectionType === "excel") {
-        if (fileNames.length === 0) {
-          setStatus({
-            type: "error",
-            message: "Please upload at least one Excel file.",
-          });
-          return;
-        }
-
-        // Resolve full paths if needed (e.g. Electron dialog or File objects)
-        const userPath = await window.ipcRenderer.invoke("get-user-data-path");
-        const fullPaths = fileNames.map((f) => `${userPath}/${f}`);
-
-        const response = await window.ipcRenderer.invoke(
-          "test-excel-connection",
-          fullPaths
-        );
-
-        if (response.success) {
-          console.log("📦 Parsed Excel Schema:", response.schema);
-          setStatus({
-            type: "success",
-            message: "Template parsed successfully!",
-          });
-        } else {
-          setStatus({
-            type: "error",
-            message: response.message || "Parsing failed.",
-          });
-        }
+      );
+      if (response.success) {
+        setStatus({ type: "success", message: "Connected to the database." });
+      } else {
+        setStatus({
+          type: "error",
+          message: response.message || "Connection failed.",
+        });
       }
     } catch (error: any) {
       setStatus({
         type: "error",
-        message: error.message || "Unexpected error.",
+        message: error.message || "Unexpected error occurred.",
       });
     }
   };
 
   const validateForm = () => {
     const missingFields = [];
-
     if (!formData.name) missingFields.push("Name");
-
-    if (connectionType === "mysql") {
-      if (!formData.host) missingFields.push("Host");
-      if (!formData.port) missingFields.push("Port");
-      if (!formData.username) missingFields.push("Username");
-    }
-
-    if (["excel", "csv", "sqlite"].includes(connectionType)) {
-      if (fileNames.length === 0) {
-        missingFields.push("File(s)");
-      }
-    }
+    if (!formData.host) missingFields.push("Host");
+    if (!formData.port) missingFields.push("Port");
+    if (!formData.username) missingFields.push("Username");
 
     if (missingFields.length > 0) {
       onDialogTrigger?.(

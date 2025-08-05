@@ -14,6 +14,8 @@ export function parseExcelFiles(filePaths: string[]) {
 
     const workbook = XLSX.readFile(filePath);
     const fileName = path.basename(filePath);
+  console.log("w: " + workbook.SheetNames, "f: " + fileName)
+
     result[fileName] = {};
 
     for (const sheetName of workbook.SheetNames) {

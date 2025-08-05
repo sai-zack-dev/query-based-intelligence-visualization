@@ -56,10 +56,8 @@ class ConnectionManager {
         host: conn.host ?? null,
         port: conn.port ? parseInt(conn.port) : null,
         file: null,
-        date: new Date().toISOString(),
       };
 
-      // console.log("✅ activeConnectionMeta SET:", this.activeConnectionMeta);
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };

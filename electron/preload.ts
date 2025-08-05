@@ -26,5 +26,5 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 });
 contextBridge.exposeInMainWorld("api", {
   aiGenerateSQL: (prompt: string, schema: string) =>
-    ipcRenderer.invoke("ai-generate-sql", prompt, schema)
+    ipcRenderer.invoke("ai-generate-sql", prompt, schema),
 });
