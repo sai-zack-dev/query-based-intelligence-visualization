@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   ColumnSelection,
   Filter,
-  Join,
   OrderByItem,
 } from "@/types/querybuilder";
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
@@ -24,7 +23,6 @@ interface ManualPanelProps {
 
 export const ManualPanel: React.FC<ManualPanelProps> = ({ selectedDatabase }) => {
   const {
-    sql,
     setSql,
     manualForm,
     setManualForm,

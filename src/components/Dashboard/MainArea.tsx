@@ -4,9 +4,6 @@ import RGL, { WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { renderChartTemplate } from "@/components/common/ChartRenderer";
-import { FaTrash } from "react-icons/fa";
-import ConfirmDialog from "../common/ConfirmDialog";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 interface MainAreaProps {
   isEdit: boolean;
@@ -16,10 +13,6 @@ interface MainAreaProps {
 
 const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
   const ReactGridLayout = WidthProvider(RGL);
-  const [openConfirm, setOpenConfirm] = useState(false);
-  const [chartToDelete, setChartToDelete] = useState<DashboardChart | null>(
-    null
-  );
   const layout: Layout[] = charts.map((chart) => ({
     i: chart.id.toString(),
     x: chart.x,

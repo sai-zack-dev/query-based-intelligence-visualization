@@ -1,6 +1,6 @@
 import { IconType } from "react-icons";
 import { IoBarChart, IoPieChart } from "react-icons/io5";
-import { ChartName, PieConfig, ChartTemplateProps } from "@/types/chart";
+import { ChartName, ChartTemplateProps } from "@/types/chart";
 import { LuChartLine } from "react-icons/lu";
 import { AiOutlineAreaChart } from "react-icons/ai";
 

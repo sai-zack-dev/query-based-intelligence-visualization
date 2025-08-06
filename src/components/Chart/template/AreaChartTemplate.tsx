@@ -36,14 +36,14 @@ const AreaChartTemplate: React.FC<Props> = ({ type, data, config }) => {
         {type === "TargetedLineArea" && config.customDefs && (
           <defs>
             <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-              {config.customDefs.map((val, idx) => (
+              {config.customDefs.map((val) => (
                 <stop offset={val.offset} stopColor={val.color} stopOpacity={val.opacity} />
               ))}
             </linearGradient>
           </defs>
         )}
 
-        {config.areas?.map((area: AreaConfig, idx: number) =>
+        {config.areas?.map((area: AreaConfig) =>
           area.active ? (
             <Area
               key={area.dataKey}

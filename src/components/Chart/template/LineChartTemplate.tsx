@@ -49,7 +49,7 @@ const LineChartTemplate: React.FC<Props> = ({ type, data, config }) => {
         {config.tooltip && <Tooltip />}
         {config.legend && <Legend />}
 
-        {config.lines?.map((line: LineConfig, idx: number) =>
+        {config.lines?.map((line: LineConfig) =>
           line.active ? (
             <Line
               key={line.dataKey}

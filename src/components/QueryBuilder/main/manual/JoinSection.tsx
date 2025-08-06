@@ -1,7 +1,6 @@
 import React from "react";
 import { FaCircleXmark } from "react-icons/fa6";
 import type { Join, JoinType } from "@/types/querybuilder";
-import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 
 type JoinSectionProps = {
   joins: Join[];
@@ -15,11 +14,9 @@ const JoinSection: React.FC<JoinSectionProps> = ({
   joins,
   setJoins,
   tables,
-  selectedDatabase,
   allColumns,
 }) => {
   const joinTypes: JoinType[] = ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN"];
-  const { schema } = useQueryBuilderContext();
 
   return (
     <div>

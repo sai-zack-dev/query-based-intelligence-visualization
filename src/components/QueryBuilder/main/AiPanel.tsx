@@ -28,7 +28,6 @@ interface ResultMessage extends Message {
 export const AiPanel: React.FC = () => {
   const navigate = useNavigate();
   const { selectedDatabase, schema } = useQueryBuilderContext();
-  const { setSql } = useQueryBuilderContext();
   const { runQuery } = useRunQuery();
 
   const [messages, setMessages] = useState<ResultMessage[]>([

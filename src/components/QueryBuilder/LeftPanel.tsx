@@ -6,7 +6,6 @@ import { RiInformation2Line, RiInformation2Fill } from "react-icons/ri";
 import { FaBookmark, FaDatabase } from "react-icons/fa";
 import SidebarTab from "@/components/common/SidebarTab";
 import DataExplorer from "./sidebar/DataExplorer";
-import { ConnectionData, ConnectionType } from "@/types/connection";
 import SavedQuery from "./sidebar/SavedQuery";
 import DataSource from "./sidebar/DataSource";
 

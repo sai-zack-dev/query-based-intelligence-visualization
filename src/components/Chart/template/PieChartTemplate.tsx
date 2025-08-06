@@ -7,7 +7,7 @@ interface Props {
   data: any[];
   config: Partial<ChartTemplateProps>;
 }
-const PieChartTemplate: React.FC<Props> = ({ type, data, config }) => {
+const PieChartTemplate: React.FC<Props> = ({ data, config }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>

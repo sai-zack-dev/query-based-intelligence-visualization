@@ -1,17 +1,15 @@
 import { ColorPicker } from "@/components/ui/color-picker";
-import { DualRangeSlider } from "@/components/ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 import { useChart } from "@/context/ChartContext";
 import { ChartName } from "@/types/chart";
-import { Slider } from "@radix-ui/react-slider";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 interface Props {
   chartType: ChartName;
 }
 
 export default function SettingForms({ chartType }: Props) {
-  const { chartConfig, setChartConfig, resultData, chartData } = useChart();
+  const { chartConfig, setChartConfig, resultData } = useChart();
   const bars = chartConfig?.bars ?? [];
   const columns = Object.keys(resultData?.[0] || {});
   const numericColumns = columns.filter((key) =>

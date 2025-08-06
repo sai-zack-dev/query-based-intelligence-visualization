@@ -8,7 +8,7 @@ export function transformChartData(
 ): any[] {
   if (!chartType || !config || !resultData?.length) return [];
 
-  const { xKey, yKey, barsKey, bars, pies } = config;
+  const { xKey, yKey, barsKey, pies } = config;
 
   // === Bar chart ===
   if ((chartType === "TinyBar" || chartType === "SimpleBar" || chartType === "StackedBar") && xKey && yKey && barsKey) {
