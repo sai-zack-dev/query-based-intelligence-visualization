@@ -15,10 +15,11 @@ export async function initDatabase(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       type TEXT NOT NULL,
-      host TEXT,
-      port TEXT,
-      username TEXT,
-      database TEXT
+      host TEXT DEFAULT NULL,
+      port TEXT DEFAULT NULL,
+      username TEXT DEFAULT NULL,
+      database TEXT DEFAULT NULL,
+      file TEXT DEFAULT NULL
     );
     
     CREATE TABLE IF NOT EXISTS charts (
@@ -26,8 +27,8 @@ export async function initDatabase(): Promise<void> {
       uuid TEXT NOT NULL,
       title TEXT NOT NULL,
       type TEXT NOT NULL,
-      config TEXT,
-      data TEXT
+      config TEXT NOT NULL,
+      data TEXT NOT NULL 
     );
 
     CREATE TABLE IF NOT EXISTS dashboards (

@@ -1,24 +1,18 @@
 import React from "react";
 import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
 import { SavedConnectionCard } from "./sidebar/SavedConnectionCard";
-import { ConnectionData } from "@/types/connection";
+import { useDataConnection } from "@/context/DataConnectionContext";
 import { SidebarData } from "@/types/sidebar";
 
-interface SavedConnectionsPanelProps extends SidebarData {
-  connections: ConnectionData[];
-  activeConnectionId: string | number | null;
-  setActiveConnectionId: (id: string | number) => void;
-  onAddNewConnection: () => void;
-}
-
-export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
+export const SavedConnectionsPanel: React.FC<SidebarData> = ({
   sidebarActive,
   toggleSidebar,
-  connections,
-  activeConnectionId,
-  setActiveConnectionId,
-  onAddNewConnection,
 }) => {
+  const { connections, selectedConnection, setSelectedConnection } =
+    useDataConnection();
+
+  const handleAddNewConnection = () => setSelectedConnection(null);
+
   const sidebarClasses = `
     sidebar
     ${
@@ -59,8 +53,11 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
               <SavedConnectionCard
                 key={connection.id}
                 connection={connection}
-                active={connection.id === activeConnectionId}
-                onClick={() => setActiveConnectionId(connection.id)}
+                active={
+                  selectedConnection !== null &&
+                  connection.id === selectedConnection.id
+                }
+                onClick={() => setSelectedConnection(connection)}
               />
             ))
           )}
@@ -70,7 +67,7 @@ export const SavedConnectionsPanel: React.FC<SavedConnectionsPanelProps> = ({
         {sidebarActive && (
           <button
             className="w-full mt-4 text-sm btn-outline"
-            onClick={onAddNewConnection}
+            onClick={handleAddNewConnection}
           >
             + Add New Connection
           </button>

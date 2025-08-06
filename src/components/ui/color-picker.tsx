@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { useMemo, useState, forwardRef } from 'react'
 import { HexColorPicker } from 'react-colorful'
 import { cn } from '@/lib/utils'

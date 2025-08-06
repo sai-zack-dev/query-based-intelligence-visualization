@@ -12,7 +12,7 @@ export const SavedConnectionCard: React.FC<Props> = ({
   active = false,
   onClick = () => {},
 }) => {
-  const { name, type, host, port, file, date } = connection;
+  const { name, type, host, port, file } = connection;
 
   const getTypeColor = (type: string): string => {
     const colors = {
@@ -38,8 +38,12 @@ export const SavedConnectionCard: React.FC<Props> = ({
             {host}:{port}
           </p>
         )}
-        {file && <p className="text-xs text-gray-500">{file}</p>}
-        <p className="text-xs text-gray-400">{date}</p>
+        {file &&
+          JSON.parse(file).map((f: any) => (
+            <p key={f} className="text-xs text-gray-500">
+              {f}
+            </p>
+          ))}
       </div>
       <div className={`text-xs px-3 py-1 rounded ${getTypeColor(type)}`}>
         {type}

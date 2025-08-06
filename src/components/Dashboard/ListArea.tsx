@@ -4,7 +4,7 @@ import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { CheckIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { FaPencil } from "react-icons/fa6";
 import { FaCheck, FaTrash } from "react-icons/fa";
 import { DashboardChart } from "@/types/chart";

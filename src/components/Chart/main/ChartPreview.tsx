@@ -4,10 +4,12 @@ import { useState } from "react";
 import SaveToDashboardModal from "../sidebar/SaveToDashboardModal";
 import { FaSave } from "react-icons/fa";
 import { ExportButton } from "@/components/common/ExportButton";
+import { useRef } from "react";
 
 const ChartPreview: React.FC = () => {
   const { chartType, chartData, chartConfig, chartTitle } = useChart();
   const [open, setOpen] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -19,7 +21,11 @@ const ChartPreview: React.FC = () => {
       {/* save btn and modal */}
 
       <div className="w-full flex justify-end p-3 gap-3">
-        <ExportButton data={chartData} filename={chartTitle} />
+        <ExportButton
+          data={chartData}
+          filename={chartTitle}
+          chartRef={chartRef}
+        />
         <button
           onClick={() => setOpen(true)}
           className={`btn-primary text-sm flex justify-center items-center gap-2 ${
@@ -31,7 +37,7 @@ const ChartPreview: React.FC = () => {
           Save to Dashboard
         </button>
       </div>
-      <div className="h-100 px-5 py-10">
+      <div ref={chartRef} className="h-100 px-5 py-10">
         {chartConfig ? (
           renderChartTemplate({
             type: chartType,

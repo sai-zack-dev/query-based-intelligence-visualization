@@ -11,14 +11,14 @@ Query Builder
 Chart Generation
 - Chart Setting (done)
 - Chart Preview with Query (done)
-- Add different charts ()
-- export chart ()
+- Add different charts (almost done)
+- export chart (2)
 
 Dashboard
 - UI (Done)
 - Edit (done)
 - Save Dashboard and Chart (done)
 - Dasboard grid (done)
-- Dashboard name uniqueness ()
-- Edit chart name in dashboard edit mode ()
-- export chart ()
+- Dashboard name uniqueness (4)
+- Edit chart name in dashboard edit mode (5)
+- export chart (3)

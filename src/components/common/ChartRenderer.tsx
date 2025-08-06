@@ -2,6 +2,8 @@ import BarChartTemplate from "@/components/Chart/template/BarChartTemplate";
 import PieChartTemplate from "@/components/Chart/template/PieChartTemplate";
 import { ChartName } from "@/types/chart";
 import { ChartTemplateProps } from "@/types/chart";
+import LineChartTemplate from "../Chart/template/LineChartTemplate";
+import AreaChartTemplate from "../Chart/template/AreaChartTemplate";
 
 /**
  * A generic renderer that returns the correct template based on chart type
@@ -31,9 +33,31 @@ export function renderChartTemplate({
         />
       );
 
-    case "TwoLevelPie":
+    case "SimpleLine":
+    case "DashedLine":
+    case "VerticalLine":
+      return (
+        <LineChartTemplate
+          type={type}
+          data={data}
+          config={config}
+        />
+      );
+
+    case "SimpleArea":
+    case "StackedArea":
+    case "TargetedLineArea":
+      return (
+        <AreaChartTemplate
+          type={type}
+          data={data}
+          config={config}
+        />
+      );
+
+    case "DonutPie":
     case "StraightAnglePie":
-    case "TwoSimplePie":
+    case "SimplePie":
       return (
         <PieChartTemplate
           type={type}

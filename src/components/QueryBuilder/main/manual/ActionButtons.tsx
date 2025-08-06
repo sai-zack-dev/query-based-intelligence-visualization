@@ -3,7 +3,6 @@ import SaveQueryButton from "@/components/common/SaveQueryButton";
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
 import React from "react";
 import { FaChartArea, FaPlay } from "react-icons/fa";
-import { MdOutlineFileDownload } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { ExportButton } from "@/components/common/ExportButton";
 

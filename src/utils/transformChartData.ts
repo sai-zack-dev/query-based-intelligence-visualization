@@ -8,7 +8,7 @@ export function transformChartData(
 ): any[] {
   if (!chartType || !config || !resultData?.length) return [];
 
-  const { xKey, yKey, barsKey, bars, pies } = config;
+  const { xKey, yKey, barsKey, pies } = config;
 
   // === Bar chart ===
   if ((chartType === "TinyBar" || chartType === "SimpleBar" || chartType === "StackedBar") && xKey && yKey && barsKey) {
@@ -28,9 +28,9 @@ export function transformChartData(
 
   // === Pie Charts: use pies[] with dataKey
   if (
-    chartType === "TwoLevelPie" ||
+    chartType === "DonutPie" ||
     chartType === "StraightAnglePie" ||
-    chartType === "TwoSimplePie"
+    chartType === "SimplePie"
   ) {
     return (pies ?? []).map((pie) => {
       const { dataKey } = pie;

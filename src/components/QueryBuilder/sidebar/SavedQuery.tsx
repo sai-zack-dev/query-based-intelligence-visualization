@@ -10,7 +10,6 @@ import type {
   OrderByItem,
 } from "@/types/querybuilder";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import { CodeBlock } from "@/components/ui/code-block";
 
 const SavedQuery: React.FC = () => {
   const [queries, setQueries] = useState<QueryRecord[]>([]);
@@ -262,6 +261,7 @@ const SavedQuery: React.FC = () => {
                           dangerouslySetInnerHTML={{
                             __html: formatSQL(query.sql),
                           }}
+                          className="text-pretty"
                         />
                       </pre>
                     </div>

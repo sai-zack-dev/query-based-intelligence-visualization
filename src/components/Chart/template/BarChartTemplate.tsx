@@ -30,7 +30,7 @@ const BarChartTemplate: React.FC<Props> = ({ type, data, config }) => {
 
         {config.bars
           ?.filter((bar) => bar.active)
-          .map((bar, idx) => (
+          .map((bar) => (
             <Bar
               key={bar.dataKey}
               dataKey={bar.dataKey}

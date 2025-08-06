@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQueryBuilderContext } from "@/context/QueryBuilderContext";
-import { ConnectionType } from "@/types/connection";
 
 const typeColor: Record<string, string> = {
   mysql: "bg-teal-100 text-teal-600",

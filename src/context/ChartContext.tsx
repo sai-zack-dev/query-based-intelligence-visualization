@@ -1,5 +1,5 @@
 import { ChartName, ChartTemplateProps } from "@/types/chart";
-import { createContext, useContext, useState, ReactNode, useMemo } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { transformChartData } from "@/utils/transformChartData";
 import { useEffect } from "react";
 

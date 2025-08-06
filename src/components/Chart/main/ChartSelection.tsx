@@ -1,18 +1,25 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChart } from "@/context/ChartContext";
 import { chartCategories, chartMeta } from "@/utils/chartMeta";
 import { renderChartTemplate } from "@/components/common/ChartRenderer";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"; // adjust path if needed
+import { AlertBox } from "@/components/common/AlertBox";
 
 const ChartSelection: React.FC = () => {
-  const {
-    setActiveCategoryId,
-    chartType,
-    setChartType,
-    setActiveTab,
-  } = useChart();
+  const { setActiveCategoryId, chartType, setChartType, setActiveTab } =
+    useChart();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -45,10 +52,7 @@ const ChartSelection: React.FC = () => {
           Chart Selection
         </h2>
       </div>
-      <div
-        ref={containerRef}
-        className="space-y-10 p-4 h-[75vh] overflow-auto"
-      >
+      <div ref={containerRef} className="space-y-10 p-4 h-[75vh] overflow-auto">
         {chartCategories.map((category) => {
           const chartsInCategory = chartMeta.filter(
             (chart) => chart.category === category.categoryId
@@ -74,9 +78,17 @@ const ChartSelection: React.FC = () => {
                         ? "bg-blue-50 border border-blue-300"
                         : "bg-gray-50"
                     }`}
+                    // onClick={() => {
+                    //   setChartType(chart.id);
+                    //   setActiveTab("config");
+                    // }}
                     onClick={() => {
-                      setChartType(chart.id);
-                      setActiveTab("config");
+                      if (category.categoryId === "bar") {
+                        setChartType(chart.id);
+                        setActiveTab("config");
+                      } else {
+                        setShowDialog(true);
+                      }
                     }}
                   >
                     <div className="h-60">
@@ -96,6 +108,30 @@ const ChartSelection: React.FC = () => {
           );
         })}
       </div>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="pb-4">🚧 Feature Under Construction</DialogTitle>
+            <DialogDescription>
+              <AlertBox message="This chart type is currently under development and not yet
+              available. Please select a supported chart type (e.g., Tiny Bar
+              Chart, Simple Bar
+              Chart, Stacked Bar
+              Chart)." type="warning" />
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button
+                className="btn-primary"
+                onClick={() => setShowDialog(false)}
+              >
+                Got it
+              </button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
