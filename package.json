@@ -3,12 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "author": {
+    "name": "sai-zack-dev",
+    "email": "saizlinh@gmail.com"
+  },
+  "description": "AI-powered SQL query and chart builder for non-technical users.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "postinstall": "electron-rebuild -f -w better-sqlite3"
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -57,7 +62,6 @@
     "@vitejs/plugin-react": "^4.2.1",
     "electron": "^30.0.1",
     "electron-builder": "^24.13.3",
-    "electron-rebuild": "^3.2.9",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
