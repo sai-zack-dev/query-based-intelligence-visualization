@@ -2,8 +2,8 @@ name: Build & Release QBIV
 
 on:
   push:
-    tags:
-      - "v*"  # Only run when you push a version tag like v1.0.0
+    branches:
+    - release/*
 
 jobs:
   build:
