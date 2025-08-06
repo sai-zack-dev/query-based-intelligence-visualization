@@ -10,7 +10,6 @@ import type {
   OrderByItem,
 } from "@/types/querybuilder";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import { CodeBlock } from "@/components/ui/code-block";
 
 const SavedQuery: React.FC = () => {
   const [queries, setQueries] = useState<QueryRecord[]>([]);

@@ -1,6 +1,8 @@
 import { IconType } from "react-icons";
 import { IoBarChart, IoPieChart } from "react-icons/io5";
 import { ChartName, PieConfig, ChartTemplateProps } from "@/types/chart";
+import { LuChartLine } from "react-icons/lu";
+import { AiOutlineAreaChart } from "react-icons/ai";
 
 // === Type Definitions ===
 export type ChartTypeMeta = {
@@ -27,6 +29,16 @@ export const chartCategories: ChartCategoryMeta[] = [
     categoryIcon: IoBarChart,
   },
   {
+    categoryId: "line",
+    categoryTitle: "Line Chart",
+    categoryIcon: LuChartLine,
+  },
+  {
+    categoryId: "area",
+    categoryTitle: "Area Chart",
+    categoryIcon: AiOutlineAreaChart,
+  },
+  {
     categoryId: "pie",
     categoryTitle: "Pie Chart",
     categoryIcon: IoPieChart,
@@ -35,6 +47,7 @@ export const chartCategories: ChartCategoryMeta[] = [
 
 // === Chart Metadata ===
 export const chartMeta: ChartTypeMeta[] = [
+  // === Bar Charts ===
   {
     id: "TinyBar",
     title: "Tiny Bar",
@@ -78,12 +91,196 @@ export const chartMeta: ChartTypeMeta[] = [
     },
   },
 
+  // === Area Charts ===
+  {
+    id: "SimpleArea",
+    title: "Simple Area",
+    category: "area",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "name",
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: false,
+      areas: [
+        {
+          dataKey: "uv",
+          stroke: "#8884d8",
+          fill: "#8884d8",
+          active: true,
+          type: "monotone",
+        },
+      ],
+    },
+  },
+  {
+    id: "StackedArea",
+    title: "Stacked Area",
+    category: "area",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "name",
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: false,
+      stackOffset: "expand",
+      areas: [
+        {
+          dataKey: "uv",
+          stroke: "#8884d8",
+          fill: "#8884d8",
+          active: true,
+          stackId: "1",
+          type: "monotone",
+        },
+        {
+          dataKey: "pv",
+          stroke: "#82ca9d",
+          fill: "#82ca9d",
+          active: true,
+          stackId: "1",
+          type: "monotone",
+        },
+        {
+          dataKey: "amt",
+          stroke: "#ffc658",
+          fill: "#ffc658",
+          active: true,
+          stackId: "1",
+          type: "monotone",
+        },
+      ],
+    },
+  },
+  {
+    id: "TargetedLineArea",
+    title: "Targeted Line Area",
+    category: "area",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "name",
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: false,
+      areas: [
+        {
+          dataKey: "uv",
+          stroke: "#000000",
+          fill: "url(#splitColor)",
+          active: true,
+          type: "monotone",
+        },
+      ],
+      customDefs: [
+        {
+          offset: "50%",
+          color: "#82ca9d",
+          opacity: 1,
+        },
+        {
+          offset: "50%",
+          color: "#ffc658",
+          opacity: 1,
+        },
+      ],
+    },
+  },
+
+  // === Line Charts ===
+  {
+    id: "SimpleLine",
+    title: "Simple Line",
+    category: "line",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "name",
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: true,
+      lines: [
+        {
+          dataKey: "pv",
+          stroke: "#8884d8",
+          activeDot: { r: 8 },
+          active: true,
+          type: "monotone",
+        },
+        {
+          dataKey: "uv",
+          stroke: "#82ca9d",
+          active: true,
+          type: "monotone",
+        },
+      ],
+    },
+  },
+  {
+    id: "DashedLine",
+    title: "Dashed Line",
+    category: "line",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "name",
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: true,
+      lines: [
+        {
+          dataKey: "pv",
+          stroke: "#8884d8",
+          strokeDasharray: "5 5",
+          active: true,
+          type: "monotone",
+        },
+        {
+          dataKey: "uv",
+          stroke: "#82ca9d",
+          strokeDasharray: "3 4 5 2",
+          active: true,
+          type: "monotone",
+        },
+      ],
+    },
+  },
+  {
+    id: "VerticalLine",
+    title: "Vertical Line",
+    category: "line",
+    demoData: genDemoData(),
+    demoConfig: {
+      xKey: "pv", // X-axis becomes numerical value
+      xAxis: true,
+      yAxis: true,
+      tooltip: true,
+      legend: true,
+      lines: [
+        {
+          dataKey: "pv",
+          stroke: "#8884d8",
+          active: true,
+          type: "monotone",
+        },
+        {
+          dataKey: "uv",
+          stroke: "#82ca9d",
+          active: true,
+          type: "monotone",
+        },
+      ],
+    },
+  },
+
   // === Pie Charts ===
   {
-    id: "TwoLevelPie",
-    title: "Two Level Pie",
+    id: "DonutPie",
+    title: "Donut Pie",
     category: "pie",
-    demoData: [genPieDemoData(4, "Group"), genPieDemoData(6, "A")],
+    demoData: [genPieDemoData(4, "Group")],
     demoConfig: {
       tooltip: true,
       pies: [
@@ -92,17 +289,16 @@ export const chartMeta: ChartTypeMeta[] = [
           dataKey: "value",
           cx: "50%",
           cy: "50%",
-          outerRadius: 60,
-          fill: "#8884d8",
-        },
-        {
-          dataIdx: 1,
-          dataKey: "value",
-          cx: "50%",
-          cy: "50%",
           outerRadius: 90,
-          innerRadius: 70,
-          fill: "#82ca9d",
+          innerRadius: 50,
+          fills: [
+            "#8884d8",
+            "#0088FE",
+            "#00C49F",
+            "#FFBB28",
+            "#FF8042",
+            "#82ca9d",
+          ],
           label: true,
         },
       ],
@@ -123,18 +319,26 @@ export const chartMeta: ChartTypeMeta[] = [
           cx: "50%",
           cy: "50%",
           outerRadius: 80,
-          fill: "#8884d8",
+          fills: [
+            "#8884d8",
+            "#0088FE",
+            "#00C49F",
+            "#FFBB28",
+            "#FF8042",
+            "#82ca9d",
+          ],
           label: true,
         },
       ],
     },
   },
   {
-    id: "TwoSimplePie",
-    title: "Two Simple Pies",
+    id: "SimplePie",
+    title: "Simple Pies",
     category: "pie",
-    demoData: [genPieDemoData(6, "Group"), genPieDemoData(6, "Group")],
+    demoData: [genPieDemoData(6, "Group")],
     demoConfig: {
+      tooltip: true,
       pies: [
         {
           dataIdx: 0,
@@ -142,21 +346,15 @@ export const chartMeta: ChartTypeMeta[] = [
           cx: "50%",
           cy: "50%",
           outerRadius: 80,
-          fill: "#8884d8",
+          fills: [
+            "#8884d8",
+            "#0088FE",
+            "#00C49F",
+            "#FFBB28",
+            "#FF8042",
+            "#82ca9d",
+          ],
           label: true,
-          startAngle: 180,
-          endAngle: 0,
-        },
-        {
-          dataIdx: 1,
-          dataKey: "value",
-          cx: "50%",
-          cy: "50%",
-          outerRadius: 80,
-          fill: "#82ca9d",
-          label: true,
-          startAngle: 360,
-          endAngle: 180,
         },
       ],
     },

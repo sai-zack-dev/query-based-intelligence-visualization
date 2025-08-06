@@ -9,15 +9,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import html2canvas from "html2canvas-pro";
 
 interface ExportButtonProps {
   data: any[];
-  filename?: string;
+  filename: string;
+  chartRef?: React.RefObject<HTMLDivElement>;
 }
 
-export const ExportButton: React.FC<ExportButtonProps> = ({ 
-  data, 
-  filename = "query_result" 
+export const ExportButton: React.FC<ExportButtonProps> = ({
+  data,
+  filename = "query_result",
+  chartRef,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -55,6 +58,24 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const exportAsImage = async (type: "png" | "jpg") => {
+    console.log(getComputedStyle(chartRef?.current!).color);
+    if (!chartRef?.current) return;
+    chartRef.current.classList.add("export-safe");
+
+    const canvas = await html2canvas(chartRef.current, {
+      backgroundColor: "#ffffff",
+      useCORS: true,
+    });
+
+    const mimeType = type === "png" ? "image/png" : "image/jpeg";
+    const dataUrl = canvas.toDataURL(mimeType);
+    triggerDownload(dataUrl, `${filename}.${type}`);
+
+    chartRef.current.classList.remove("export-safe");
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -66,7 +87,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
           Export As
         </button>
       </DialogTrigger>
-      
+
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Export Data</DialogTitle>
@@ -74,11 +95,11 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
             Choose the format you want to export your data.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-3 py-4">
+
+        <div className="py-4">
           <button
             onClick={exportCSV}
-            className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
             <FaFileCsv className="w-6 h-6 text-green-600" />
             <div>
@@ -91,7 +112,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
 
           <button
             onClick={exportExcel}
-            className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
             <FaFileExcel className="w-6 h-6 text-green-700" />
             <div>
@@ -104,7 +125,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
 
           <button
             onClick={exportJSON}
-            className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
             <FaDownload className="w-6 h-6 text-blue-600" />
             <div>
@@ -114,6 +135,36 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
               </div>
             </div>
           </button>
+
+          {chartRef && (
+            <>
+              <button
+                onClick={() => exportAsImage("png")}
+                className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+              >
+                <FaDownload className="w-6 h-6 text-purple-600" />
+                <div>
+                  <div className="font-medium text-gray-800">PNG</div>
+                  <div className="text-xs text-gray-500">
+                    Export chart as image (PNG)
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => exportAsImage("jpg")}
+                className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+              >
+                <FaDownload className="w-6 h-6 text-pink-600" />
+                <div>
+                  <div className="font-medium text-gray-800">JPG</div>
+                  <div className="text-xs text-gray-500">
+                    Export chart as image (JPG)
+                  </div>
+                </div>
+              </button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

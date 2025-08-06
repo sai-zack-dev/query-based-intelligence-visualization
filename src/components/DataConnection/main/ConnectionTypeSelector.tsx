@@ -11,7 +11,7 @@ const options: { label: string; value: ConnectionType | "" }[] = [
   { label: "Select connection type", value: "" },
   { label: "MySQL", value: "mysql" },
   { label: "Excel", value: "excel" },
-  { label: "CSV", value: "csv" },
+  // { label: "CSV", value: "csv" },
   { label: "SQLite", value: "sqlite" },
 ];
 

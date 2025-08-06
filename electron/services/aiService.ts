@@ -1,7 +1,9 @@
 // /electron/services/aiService.ts
 import fetch from "node-fetch";
+import * as dotenv from "dotenv";
 
-const API_BASE = "http://localhost:3000"; // local proxy for dev
+dotenv.config();
+const API_BASE = process.env.AI_API_BASE; 
 
 type GroqResponse = {
   choices?: {

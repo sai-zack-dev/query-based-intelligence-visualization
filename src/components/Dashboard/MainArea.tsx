@@ -7,6 +7,7 @@ import { renderChartTemplate } from "@/components/common/ChartRenderer";
 import { FaTrash } from "react-icons/fa";
 import ConfirmDialog from "../common/ConfirmDialog";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 interface MainAreaProps {
   isEdit: boolean;
   charts: DashboardChart[];
@@ -58,42 +59,49 @@ const MainArea: React.FC<MainAreaProps> = ({ isEdit, charts, setCharts }) => {
       setCharts(updated);
     }
   };
-
   return (
     <div className="relative overflow-y-auto flex-grow pt-3 px-2 max-h-dvh">
-      <ReactGridLayout
-        className="layout"
-        layout={layout}
-        cols={10}
-        rowHeight={100}
-        containerPadding={[10, 10]}
-        isResizable={isEdit}
-        isDraggable={isEdit}
-        draggableHandle=".drag-handle"
-        useCSSTransforms={true}
-        onLayoutChange={handleLayoutChange}
-      >
-        {charts.map((chart) => (
-          <div
-            key={chart.id}
-            className="bg-white rounded-lg shadow overflow-hidden border border-blue-300"
-          >
+      {charts.length === 0 ? (
+        <div className="w-full h-full flex justify-center items-center flex-col text-gray-400 gap-2">
+          <span>There's no chart to show</span>
+          <Link to="/" className="underline text-blue-500 text-sm">Start create a new chart </Link>
+        </div>
+      ) : (
+        <ReactGridLayout
+          className="layout"
+          layout={layout}
+          cols={10}
+          rowHeight={100}
+          containerPadding={[10, 10]}
+          isResizable={isEdit}
+          isDraggable={isEdit}
+          draggableHandle=".drag-handle"
+          useCSSTransforms={true}
+          onLayoutChange={handleLayoutChange}
+        >
+          {charts.map((chart) => (
             <div
-              className={`bg-blue-100 text-blue-500 text-sm font-bold p-2 drag-handle flex justify-center items-center ${
-                isEdit ? "cursor-move" : ""
-              }`}
-            >{chart.title}
+              key={chart.id}
+              className="bg-white rounded-lg shadow overflow-hidden border border-blue-300"
+            >
+              <div
+                className={`bg-blue-100 text-blue-500 text-sm font-bold p-2 drag-handle flex justify-center items-center ${
+                  isEdit ? "cursor-move" : ""
+                }`}
+              >
+                {chart.title}
+              </div>
+              <div style={{ height: `${chart.height * 10}vh` }}>
+                {renderChartTemplate({
+                  type: chart.type,
+                  data: JSON.parse(chart.data),
+                  config: JSON.parse(chart.config),
+                })}
+              </div>
             </div>
-            <div style={{ height: `${chart.height * 10}vh` }}>
-              {renderChartTemplate({
-                type: chart.type,
-                data: JSON.parse(chart.data),
-                config: JSON.parse(chart.config),
-              })}
-            </div>
-          </div>
-        ))}
-      </ReactGridLayout>
+          ))}
+        </ReactGridLayout>
+      )}
     </div>
   );
 };

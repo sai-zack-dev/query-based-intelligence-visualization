@@ -28,9 +28,9 @@ export function transformChartData(
 
   // === Pie Charts: use pies[] with dataKey
   if (
-    chartType === "TwoLevelPie" ||
+    chartType === "DonutPie" ||
     chartType === "StraightAnglePie" ||
-    chartType === "TwoSimplePie"
+    chartType === "SimplePie"
   ) {
     return (pies ?? []).map((pie) => {
       const { dataKey } = pie;

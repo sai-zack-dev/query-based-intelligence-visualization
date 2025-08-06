@@ -1,15 +1,17 @@
 import { ColorPicker } from "@/components/ui/color-picker";
+import { DualRangeSlider } from "@/components/ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 import { useChart } from "@/context/ChartContext";
 import { ChartName } from "@/types/chart";
-import React, { useEffect, useMemo } from "react";
+import { Slider } from "@radix-ui/react-slider";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface Props {
   chartType: ChartName;
 }
 
 export default function SettingForms({ chartType }: Props) {
-  const { chartConfig, setChartConfig, resultData } = useChart();
+  const { chartConfig, setChartConfig, resultData, chartData } = useChart();
   const bars = chartConfig?.bars ?? [];
   const columns = Object.keys(resultData?.[0] || {});
   const numericColumns = columns.filter((key) =>
@@ -99,119 +101,120 @@ export default function SettingForms({ chartType }: Props) {
   };
   return (
     <>
+      <div>
+        <label className="input-label flex w-full justify-between">
+          X-Axis{" "}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-300">visibility</span>
+            <Switch
+              checked={chartConfig?.xAxis ?? false}
+              onCheckedChange={(checked) =>
+                setChartConfig((prev) => ({
+                  ...prev!,
+                  xAxis: checked,
+                }))
+              }
+              className="data-[state=checked]:bg-green-500"
+            />
+          </div>
+        </label>
+        <select
+          className="input"
+          value={chartConfig?.xKey}
+          onChange={(e) =>
+            setChartConfig((prev) => ({
+              ...prev!,
+              xKey: e.target.value,
+            }))
+          }
+        >
+          <option disabled selected>
+            {" "}
+            --- Select X-Axis column ---{" "}
+          </option>
+          {columns.map((col) => (
+            <option key={col} value={col}>
+              {col}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="input-label flex w-full justify-between">
+          Y-Axis{" "}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-300">visibility</span>
+            <Switch
+              checked={chartConfig?.yAxis ?? false}
+              onCheckedChange={(checked) =>
+                setChartConfig((prev) => ({
+                  ...prev!,
+                  yAxis: checked,
+                }))
+              }
+              className="data-[state=checked]:bg-green-500"
+            />
+          </div>
+        </label>
+        <select
+          className="input"
+          value={chartConfig?.yKey}
+          onChange={(e) =>
+            setChartConfig((prev) => ({
+              ...prev!,
+              yKey: e.target.value,
+            }))
+          }
+        >
+          <option disabled selected>
+            {" "}
+            --- Select Y-Axis column ---{" "}
+          </option>
+          {numericColumns.map((col) => (
+            <option key={col} value={col}>
+              {col}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-3">
+        <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
+          <label className="input-label" htmlFor="tooltip">
+            Tooltips
+          </label>
+          <Switch
+            className="data-[state=checked]:bg-green-500"
+            onCheckedChange={(checked) =>
+              setChartConfig((prev) => ({
+                ...prev!,
+                tooltip: checked,
+              }))
+            }
+            id="tooltip"
+          />
+        </label>
+        <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
+          <label className="input-label" htmlFor="legend">
+            Legend
+          </label>
+          <Switch
+            className="data-[state=checked]:bg-green-500"
+            onCheckedChange={(checked) =>
+              setChartConfig((prev) => ({
+                ...prev!,
+                legend: checked,
+              }))
+            }
+            id="legend"
+          />
+        </label>
+      </div>
+
       {(chartType === "TinyBar" ||
         chartType === "SimpleBar" ||
         chartType === "StackedBar") && (
         <>
-          <div>
-            <label className="input-label flex w-full justify-between">
-              X-Axis{" "}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-300">visibility</span>
-                <Switch
-                  checked={chartConfig?.xAxis ?? false}
-                  onCheckedChange={(checked) =>
-                    setChartConfig((prev) => ({
-                      ...prev!,
-                      xAxis: checked,
-                    }))
-                  }
-                  className="data-[state=checked]:bg-green-500"
-                />
-              </div>
-            </label>
-            <select
-              className="input"
-              value={chartConfig?.xKey}
-              onChange={(e) =>
-                setChartConfig((prev) => ({
-                  ...prev!,
-                  xKey: e.target.value,
-                }))
-              }
-            >
-              <option disabled selected>
-                {" "}
-                --- Select X-Axis column ---{" "}
-              </option>
-              {columns.map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="input-label flex w-full justify-between">
-              Y-Axis{" "}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-300">visibility</span>
-                <Switch
-                  checked={chartConfig?.yAxis ?? false}
-                  onCheckedChange={(checked) =>
-                    setChartConfig((prev) => ({
-                      ...prev!,
-                      yAxis: checked,
-                    }))
-                  }
-                  className="data-[state=checked]:bg-green-500"
-                />
-              </div>
-            </label>
-            <select
-              className="input"
-              value={chartConfig?.yKey}
-              onChange={(e) =>
-                setChartConfig((prev) => ({
-                  ...prev!,
-                  yKey: e.target.value,
-                }))
-              }
-            >
-              <option disabled selected>
-                {" "}
-                --- Select Y-Axis column ---{" "}
-              </option>
-              {numericColumns.map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex gap-3">
-            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
-              <label className="input-label" htmlFor="tooltip">
-                Tooltips
-              </label>
-              <Switch
-                className="data-[state=checked]:bg-green-500"
-                onCheckedChange={(checked) =>
-                  setChartConfig((prev) => ({
-                    ...prev!,
-                    tooltip: checked,
-                  }))
-                }
-                id="tooltip"
-              />
-            </label>
-            <label className="flex-1 flex justify-between border p-2 items-center rounded-md">
-              <label className="input-label" htmlFor="legend">
-                Legend
-              </label>
-              <Switch
-                className="data-[state=checked]:bg-green-500"
-                onCheckedChange={(checked) =>
-                  setChartConfig((prev) => ({
-                    ...prev!,
-                    legend: checked,
-                  }))
-                }
-                id="legend"
-              />
-            </label>
-          </div>
           <div>
             <label className="input-label">Bar</label>
             <select

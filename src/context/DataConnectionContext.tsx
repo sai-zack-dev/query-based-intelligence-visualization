@@ -136,7 +136,7 @@ export const DataConnectionProvider: React.FC<{
         formData
       );
       if (response.success) {
-        setStatus({ type: "success", message: "Connected!" });
+        setStatus({ type: "success", message: "Connected to the database." });
       } else {
         setStatus({
           type: "error",
@@ -201,7 +201,7 @@ export const DataConnectionProvider: React.FC<{
       };
 
       if (saveResponse.success) {
-        await connectAndNavigate("Connected!");
+        await connectAndNavigate("Connected to the database.");
         return;
       }
 
