@@ -180,6 +180,7 @@ Make sure you have:
 BSc (Hons) Cybersecurity and Networks
 Teesside University @ MDIS Singapore
 
-* 🌐 Portfolio: [sai-zack.dev](https://saiz-portfolio.netlify.app/)
-* 🐙 GitHub: [@sai-zack](https://github.com/sai-zack-dev)
-* 📧 Email: [saizaylin.nhtet@example.com](mailto:saizlinh@gmail.com)
+* 🌐 Portfolio: [saiz-portfolio](https://saiz-portfolio.netlify.app/)
+* 🐙 GitHub: [@sai-zack-dev](https://github.com/sai-zack-dev)
+
+* 📧 Email: [saizlinh@gmail.com](mailto:saizlinh@gmail.com)
