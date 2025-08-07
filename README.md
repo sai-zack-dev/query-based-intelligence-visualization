@@ -183,4 +183,5 @@ Teesside University @ MDIS Singapore
 * 🌐 Portfolio: [sai-zack.dev](https://saiz-portfolio.netlify.app/)
 * 🐙 GitHub: [@sai-zack](https://github.com/sai-zack-dev)
 * 📧 Email: [saizaylin.nhtet@example.com](mailto:saizlinh@gmail.com)
+
 ![Glow Logo](./public/readme/glow_logo.png)
