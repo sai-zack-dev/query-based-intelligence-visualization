@@ -126,7 +126,7 @@ export const ListArea: React.FC<ListAreaProps> = ({
     <div className="pt-6 flex flex-col justify-between">
       <div>
         <Link to="/" className={sidebarNav}>
-          <img src="../logo.png" alt="QBIV Logo" className="w-6 h-6" />
+          <img src="./logo.png" alt="QBIV Logo" className="w-6 h-6" />
           {sidebarActive && (
             <span className="font-bold text-lg text-blue-500">QBIV</span>
           )}

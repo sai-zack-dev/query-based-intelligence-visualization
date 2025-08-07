@@ -23,6 +23,7 @@ export function createMainWindow(): BrowserWindow {
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
+  win.loadFile(path.join(RENDERER_DIST, "index.html"));
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);

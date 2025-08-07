@@ -50,10 +50,6 @@
 ## 🔗 Links
 
 - 🌍 **Landing Website**: [qbiv.netlify.app](https://qbiv.netlify.app)
-- 📥 **Download QBIV (v1.0.0 Alpha)**:
-  - [⬇️ Windows (.exe)](https://example.com/qbiv-win.exe)
-  - [⬇️ macOS (.dmg)](https://example.com/qbiv-mac.dmg)
-  - [⬇️ Linux (.AppImage)](https://example.com/qbiv-linux.AppImage)
 
 ---
 
@@ -71,10 +67,51 @@
 
 ---
 
-## 📦 Installation (Development Mode)
+## ✅ Full Setup Guide for QBIV (Main App + AI Proxy)
+
+### 1. **Clone and Set Up the AI Proxy First**
+
+The AI proxy acts as a local server that converts natural language prompts to SQL via Groq API.
 
 ```bash
-# Clone the repo
+# Clone the AI proxy repo
+git clone https://github.com/sai-zack-dev/qbiv-ai-proxy.git
+
+cd qbiv-ai-proxy
+
+# Install dependencies
+npm install
+
+# Create .env file
+cp .env.example .env
+```
+
+Then open `.env` and fill in:
+
+```env
+GROQ_API_KEY=your-real-api-key-here
+```
+
+> 🔑 **How to get a Groq API Key:**
+>
+> 1. Go to [https://console.groq.com/keys](https://console.groq.com/keys) (you need to sign in).
+> 2. Click **“Create Key”**.
+> 3. Copy the key and paste it into the `.env` file under `GROQ_API_KEY`.
+
+### 2. **Run the AI Proxy Server**
+
+After setting the key:
+
+```bash
+node index.js
+```
+
+This will start the proxy on **`http://localhost:3000`**.
+
+### 3. **Clone and Set Up the Main QBIV App**
+
+```bash
+# In another terminal tab or window
 git clone https://github.com/sai-zack-dev/query-based-intelligence-visualization.git
 
 cd query-based-intelligence-visualization
@@ -82,9 +119,27 @@ cd query-based-intelligence-visualization
 # Install dependencies
 npm install
 
-# Start the Electron app
+# Create a .env file
+cp .env.example .env
+```
+
+Update `.env` in the **main app**:
+
+```env
+AI_API_BASE=http://localhost:3000
+```
+
+### 4. **Start the Main Electron App**
+
+```bash
 npm run dev
-````
+```
+
+
+## 🧠 Notes
+
+* Your Electron app will use `process.env.AI_API_BASE` to send prompts to the AI proxy.
+* The proxy securely calls Groq API with your `GROQ_API_KEY`.
 
 Make sure you have:
 
@@ -104,7 +159,7 @@ Make sure you have:
 
 ---
 ## 📋 Poster and Slides
-![Wireframe Version 2](./public/readme/poster.png)
+![Poster 2](./public/readme/Poster.png)
 
 **Presentation Slides**: [canva.qbiv](https://www.canva.com/design/DAGuhi0refg/RlUnOanhwOrlcLiARaEslw/view?utm_content=DAGuhi0refg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h031efc99a6%27#1)
 
