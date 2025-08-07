@@ -13,7 +13,7 @@ export function createMainWindow(): BrowserWindow {
     minHeight: 480,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs"),
+      preload: path.join(__dirname, "/preload.mjs"),
     },
   });
 

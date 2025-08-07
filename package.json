@@ -10,7 +10,8 @@
   "description": "AI-powered SQL query and chart builder for non-technical users.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build:preload": "tsc electron/preload.ts --outDir dist-electron",
+    "build": "npm run build:preload && tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "postinstall": "electron-builder install-app-deps"
