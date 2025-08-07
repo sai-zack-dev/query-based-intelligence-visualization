@@ -11,18 +11,18 @@
 
 ## 🧠 Overview
 
-**QBIV** is a cross-platform business intelligence (BI) desktop app built for non-technical users and small teams. It enables users to query structured data from databases or files using **natural language** or **form-based SQL**, then visualize the results in rich, interactive charts and dashboards.
+**QBIV** is a cross-platform business intelligence (BI) desktop app built for non-technical users and small teams. It enables users to query structured data from databases using **natural language** or **form-based SQL**, then visualize the results in rich, interactive charts and dashboards.
 
 ---
 
 ## 🚀 Features
 
-- 🔌 **Connect to MySQL / Import CSV & Excel**
+- 🔌 **Easy connect to MySQL database**
 - 🤖 **AI Query Builder**: Natural language to SQL
-- 🧱 **Form-Based SQL Builder**: Drag-and-drop simplicity
-- 📊 **Chart Generator**: Bar, line, area, and dual-axis charts
+- 🧱 **Form-Based SQL Builder**: Build SQL queries using interactive form controls (checkboxes, dropdowns, inputs) — no need to write code  
+- 📊 **Chart Generator**: Bar, line, area, and pie charts
 - 📋 **Dashboard System**: Save, arrange, and share charts
-- 🔒 **Offline-First**: Full functionality without internet
+- 🔒 **Offline-First**: Works offline for almost all features (only the AI-powered SQL generation requires internet)
 - 🌐 **Cross-Platform**: Runs on **Windows**, **macOS**, and **Linux**
 
 ---
@@ -50,6 +50,15 @@
 ## 🔗 Links
 
 - 🌍 **Landing Website**: [qbiv.netlify.app](https://qbiv.netlify.app)
+
+**Latest version:** [v1.0.0](https://github.com/sai-zack-dev/query-based-intelligence-visualization/releases/tag/v1.0.0)
+
+| Platform | Installer | 
+|----------|-----------|
+| 🪟 Windows | [Download .exe](https://github.com/sai-zack-dev/query-based-intelligence-visualization/releases/latest/download/QBIV.Setup.1.0.0.exe) |
+| 🍎 macOS (M1/M2) | [Download .dmg](https://github.com/sai-zack-dev/query-based-intelligence-visualization/releases/latest/download/QBIV-1.0.0-arm64.dmg) |
+| 🐧 Linux (AppImage) | [Download .AppImage](https://github.com/sai-zack-dev/query-based-intelligence-visualization/releases/latest/download/QBIV-1.0.0.AppImage) |
+| 🐧 Linux (Debian) | [Download .deb](https://github.com/sai-zack-dev/query-based-intelligence-visualization/releases/latest/download/qbiv_1.0.0_amd64.deb) |
 
 ---
 
@@ -159,7 +168,7 @@ Make sure you have:
 
 ---
 ## 📋 Poster and Slides
-![Poster 2](./public/readme/Poster.png)
+![Poster](./public/readme/Poster.png)
 
 **Presentation Slides**: [canva.qbiv](https://www.canva.com/design/DAGuhi0refg/RlUnOanhwOrlcLiARaEslw/view?utm_content=DAGuhi0refg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h031efc99a6%27#1)
 
@@ -174,3 +183,4 @@ Teesside University @ MDIS Singapore
 * 🌐 Portfolio: [sai-zack.dev](https://saiz-portfolio.netlify.app/)
 * 🐙 GitHub: [@sai-zack](https://github.com/sai-zack-dev)
 * 📧 Email: [saizaylin.nhtet@example.com](mailto:saizlinh@gmail.com)
+![Glow Logo](./public/readme/glow_logo.png)
