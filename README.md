@@ -77,6 +77,10 @@
 ---
 
 ## ✅ Full Setup Guide for QBIV (Main App + AI Proxy)
+Make sure you have:
+
+* Node.js ≥ 18
+* npm ≥ 9
 
 ### 1. **Clone and Set Up the AI Proxy First**
 
@@ -150,11 +154,6 @@ npm run dev
 * Your Electron app will use `process.env.AI_API_BASE` to send prompts to the AI proxy.
 * The proxy securely calls Groq API with your `GROQ_API_KEY`.
 
-Make sure you have:
-
-* Node.js ≥ 18
-* npm ≥ 9
-
 ---
 
 ## 🌱 Future Plans
@@ -184,3 +183,4 @@ Teesside University @ MDIS Singapore
 * 🐙 GitHub: [@sai-zack-dev](https://github.com/sai-zack-dev)
 
 * 📧 Email: [saizlinh@gmail.com](mailto:saizlinh@gmail.com)
+
